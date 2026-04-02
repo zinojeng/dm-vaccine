@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>糖尿病疫苗接種建議系統 | DM Vaccine Advisor</title>
+<style>
+:root {
+  --primary: #1a73e8;
+  --primary-light: #e8f0fe;
+  --success: #1e8e3e;
+  --success-light: #e6f4ea;
+  --warning: #f9ab00;
+  --warning-light: #fef7e0;
+  --danger: #d93025;
+  --danger-light: #fce8e6;
+  --info: #5f6368;
+  --bg: #f8f9fa;
+  --card: #ffffff;
+  --border: #dadce0;
+  --text: #202124;
+  --text-secondary: #5f6368;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
+  --shadow-lg: 0 4px 12px rgba(0,0,0,0.15);
+  --z-sticky: 10;
+  --z-overlay: 20;
+  --focus-ring: 0 0 0 2px var(--primary-light), 0 0 0 4px var(--primary);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100dvh;
+}
+
+/* Header */
+.header {
+  background: var(--primary);
+  color: white;
+  padding: 20px 24px;
+  padding-top: calc(20px + env(safe-area-inset-top, 0px));
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  box-shadow: var(--shadow-lg);
+}
+.header h1 { font-size: 20px; font-weight: 500; text-wrap: balance; }
+.header .subtitle { font-size: 13px; opacity: 0.85; margin-top: 2px; }
+
+/* Container */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Cards */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--primary);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-wrap: balance;
+}
+.card-title .icon {
+  width: 24px;
+  height: 24px;
+  background: var(--primary-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* Form elements */
+.form-group {
+  margin-bottom: 16px;
+}
+.form-group:last-child { margin-bottom: 0; }
+
+label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+label .hint {
+  font-weight: 400;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+input[type="number"], select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  background: white;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+input[type="number"]:focus, select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+/* Checkbox group */
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+@media (max-width: 500px) {
+  .checkbox-grid { grid-template-columns: 1fr; }
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+  font-size: 14px;
+  user-select: none;
+}
+.checkbox-item:hover { background: var(--primary-light); border-color: var(--primary); }
+.checkbox-item.checked { background: var(--primary-light); border-color: var(--primary); }
+.checkbox-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* Vaccine history section */
+.vaccine-history-grid {
+  display: grid;
+  gap: 8px;
+}
+.vaccine-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+}
+.vaccine-history-item .name { font-weight: 500; flex: 1; }
+.vaccine-history-item select {
+  width: auto;
+  min-width: 120px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+/* Button */
+.btn-primary {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: var(--shadow);
+}
+.btn-primary:hover { background: #1557b0; }
+.btn-primary:active { transform: scale(0.99); }
+.btn-primary:disabled { background: #aaa; cursor: not-allowed; }
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: white;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.btn-outline:hover { background: var(--primary-light); }
+
+/* Focus-visible for all interactive elements */
+button:focus-visible, select:focus-visible, input:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Inline validation error */
+.form-error {
+  color: var(--danger);
+  font-size: 13px;
+  margin-top: 6px;
+  display: none;
+}
+.form-error.visible { display: block; }
+
+/* Results */
+#results { display: none; }
+
+.result-summary {
+  background: var(--primary-light);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.result-summary .count {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+.result-summary .label { font-size: 14px; color: var(--text-secondary); }
+
+.vaccine-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 12px;
+  overflow: hidden;
+  border-left: 4px solid var(--primary);
+}
+.vaccine-card.priority-high { border-left-color: var(--danger); }
+.vaccine-card.priority-medium { border-left-color: var(--warning); }
+.vaccine-card.priority-low { border-left-color: var(--success); }
+
+.vaccine-card-header {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+.vaccine-card-header h3 {
+  font-size: 15px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.priority-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+.priority-badge.high { background: var(--danger-light); color: var(--danger); }
+.priority-badge.medium { background: var(--warning-light); color: #e37400; }
+.priority-badge.low { background: var(--success-light); color: var(--success); }
+.priority-badge.info { background: #e8eaed; color: var(--info); }
+
+.vaccine-card-body {
+  padding: 0 16px 14px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.vaccine-card-body .detail-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.vaccine-card-body .detail-label {
+  font-weight: 500;
+  color: var(--text);
+  min-width: 80px;
+  flex-shrink: 0;
+}
+.vaccine-card-body .schedule-box {
+  background: var(--primary-light);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 8px;
+  font-size: 13px;
+}
+.vaccine-card-body .note {
+  background: var(--warning-light);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #e37400;
+}
+.vaccine-card-body .contraindication {
+  background: var(--danger-light);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--danger);
+}
+
+/* Timeline */
+.timeline {
+  margin-top: 16px;
+  position: relative;
+  padding-left: 24px;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+}
+.timeline-item {
+  position: relative;
+  margin-bottom: 16px;
+  padding-bottom: 4px;
+}
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px var(--primary);
+}
+.timeline-item.completed::before { background: var(--success); box-shadow: 0 0 0 2px var(--success); }
+.timeline-item .time-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--primary);
+  margin-bottom: 2px;
+}
+.timeline-item .time-content {
+  font-size: 14px;
+}
+
+/* Disclaimer */
+.disclaimer {
+  background: var(--warning-light);
+  border: 1px solid #fdd663;
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-size: 12px;
+  color: #e37400;
+  margin-top: 16px;
+  line-height: 1.5;
+}
+
+/* Print */
+.print-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+@media print {
+  .header { position: static; }
+  .no-print { display: none !important; }
+  .vaccine-card { break-inside: avoid; }
+  body { background: white; }
+  .card { box-shadow: none; border: 1px solid #ddd; }
+}
+
+/* Presets */
+.preset-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.preset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: white;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.preset-btn:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+.preset-btn .preset-icon { font-size: 15px; }
+
+/* Animations — compositor-only (opacity + transform) */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeInUp 0.3s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in { animation: none; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; }
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 24px 16px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>糖尿病疫苗接種建議系統</h1>
+  <div class="subtitle">DM Vaccine Advisor &mdash; Based on CDC/ACIP 2025 Guidelines</div>
+</div>
+
+<div class="container">
+
+  <!-- Quick Presets -->
+  <div class="card no-print">
+    <div class="card-title"><span class="icon">⚡</span> 快速預設 Quick Presets</div>
+    <div class="preset-bar">
+      <button class="preset-btn" onclick="applyPreset('t2dm_mid')"><span class="preset-icon">👤</span> T2DM 中年 OHA (55歲)</button>
+      <button class="preset-btn" onclick="applyPreset('t2dm_elder')"><span class="preset-icon">👴</span> T2DM 年長 Insulin (72歲)</button>
+      <button class="preset-btn" onclick="applyPreset('t2dm_young')"><span class="preset-icon">🧑</span> T2DM 年輕 Diet (35歲)</button>
+      <button class="preset-btn" onclick="applyPreset('t1dm')"><span class="preset-icon">💉</span> T1DM Insulin (28歲)</button>
+      <button class="preset-btn" onclick="applyPreset('t2dm_ckd')"><span class="preset-icon">🏥</span> T2DM + CKD (65歲)</button>
+    </div>
+  </div>
+
+  <!-- Step 1: Basic Info -->
+  <div class="card no-print" id="inputSection">
+    <div class="card-title"><span class="icon">1</span> 基本資料 Patient Info</div>
+
+    <div class="form-group">
+      <label>年齡 Age <span class="hint">(歲)</span></label>
+      <input type="number" id="age" min="18" max="120" placeholder="例：65" value="">
+    </div>
+
+    <div class="form-group">
+      <label>糖尿病類型 DM Type</label>
+      <select id="dmType">
+        <option value="T2DM" selected>第二型糖尿病 T2DM</option>
+        <option value="T1DM">第一型糖尿病 T1DM</option>
+        <option value="GDM">妊娠糖尿病 GDM</option>
+        <option value="other">其他類型 Other</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>糖尿病治療方式 DM Treatment</label>
+      <select id="dmTreatment">
+        <option value="oha" selected>口服降血糖藥（非 SGLT2i）OHA</option>
+        <option value="diet">飲食控制 Diet only</option>
+        <option value="sglt2i">SGLT2 抑制劑 SGLT2i</option>
+        <option value="insulin">胰島素 Insulin</option>
+        <option value="insulin_oha">胰島素 + 口服藥 Insulin + OHA</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>是否懷孕 Pregnancy</label>
+      <select id="pregnancy">
+        <option value="no">否 No</option>
+        <option value="yes">是 Yes</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Step 2: Comorbidities -->
+  <div class="card no-print">
+    <div class="card-title"><span class="icon">2</span> 共病 Comorbidities</div>
+    <div class="checkbox-grid" id="comorbidities">
+      <label class="checkbox-item" data-value="ckd">
+        <input type="checkbox" value="ckd"> 慢性腎病 CKD
+      </label>
+      <label class="checkbox-item" data-value="dialysis">
+        <input type="checkbox" value="dialysis"> 洗腎 Dialysis
+      </label>
+      <label class="checkbox-item" data-value="cvd">
+        <input type="checkbox" value="cvd"> 心血管疾病 CVD
+      </label>
+      <label class="checkbox-item" data-value="cld">
+        <input type="checkbox" value="cld"> 慢性肝病 CLD
+      </label>
+      <label class="checkbox-item" data-value="lung">
+        <input type="checkbox" value="lung"> 慢性肺病 Chronic Lung
+      </label>
+      <label class="checkbox-item" data-value="immunosuppressed">
+        <input type="checkbox" value="immunosuppressed"> 免疫抑制 Immunosuppressed
+      </label>
+      <label class="checkbox-item" data-value="hiv">
+        <input type="checkbox" value="hiv"> HIV
+      </label>
+      <label class="checkbox-item" data-value="obesity">
+        <input type="checkbox" value="obesity"> 肥胖 BMI&ge;40
+      </label>
+      <label class="checkbox-item" data-value="neuropathy">
+        <input type="checkbox" value="neuropathy"> 神經病變 Neuropathy
+      </label>
+      <label class="checkbox-item" data-value="retinopathy">
+        <input type="checkbox" value="retinopathy"> 視網膜病變 Retinopathy
+      </label>
+      <label class="checkbox-item" data-value="asplenia">
+        <input type="checkbox" value="asplenia"> 無脾 Asplenia
+      </label>
+      <label class="checkbox-item" data-value="transplant">
+        <input type="checkbox" value="transplant"> 器官移植 Transplant
+      </label>
+    </div>
+  </div>
+
+  <!-- Step 3: Vaccine History -->
+  <div class="card no-print">
+    <div class="card-title"><span class="icon">3</span> 過去疫苗接種紀錄 Vaccine History</div>
+    <div class="vaccine-history-grid">
+      <div class="vaccine-history-item">
+        <span class="name">流感 Influenza</span>
+        <select id="hist_flu">
+          <option value="unknown">不確定</option>
+          <option value="current">本季已接種</option>
+          <option value="last_year">去年有打</option>
+          <option value="never">從未接種</option>
+        </select>
+      </div>
+      <div class="vaccine-history-item">
+        <span class="name">肺炎鏈球菌 Pneumococcal</span>
+        <select id="hist_pneumo">
+          <option value="unknown">不確定</option>
+          <option value="pcv20">已完成 PCV20 或 PCV21</option>
+          <option value="pcv13_ppsv23">已完成 PCV13+PPSV23</option>
+          <option value="pcv15">已打 PCV15（未打 PPSV23）</option>
+          <option value="ppsv23_only">僅打過 PPSV23</option>
+          <option value="never">從未接種</option>
+        </select>
+      </div>
+      <div class="vaccine-history-item">
+        <span class="name">B 型肝炎 Hepatitis B</span>
+        <select id="hist_hepb">
+          <option value="unknown">不確定</option>
+          <option value="complete">已完成全程接種</option>
+          <option value="partial">部分接種</option>
+          <option value="never">從未接種</option>
+        </select>
+      </div>
+      <div class="vaccine-history-item">
+        <span class="name">COVID-19</span>
+        <select id="hist_covid">
+          <option value="unknown">不確定</option>
+          <option value="current">已打最新一劑</option>
+          <option value="outdated">有打過但非最新</option>
+          <option value="never">從未接種</option>
+        </select>
+      </div>
+      <div class="vaccine-history-item">
+        <span class="name">帶狀疱疹 Zoster (Shingrix)</span>
+        <select id="hist_zoster">
+          <option value="unknown">不確定</option>
+          <option value="complete">已完成 2 劑</option>
+          <option value="partial">已打 1 劑</option>
+          <option value="zvl_only">僅打過舊型 Zostavax</option>
+          <option value="never">從未接種</option>
+        </select>
+      </div>
+      <div class="vaccine-history-item">
+        <span class="name">Tdap / Td 破傷風</span>
+        <select id="hist_tdap">
+          <option value="unknown">不確定</option>
+          <option value="recent">近 10 年內有打</option>
+          <option value="outdated">超過 10 年</option>
+          <option value="never">從未接種</option>
+        </select>
+      </div>
+      <div class="vaccine-history-item">
+        <span class="name">RSV 呼吸道融合病毒</span>
+        <select id="hist_rsv">
+          <option value="unknown">不確定</option>
+          <option value="complete">已接種</option>
+          <option value="never">從未接種</option>
+        </select>
+      </div>
+      <div class="vaccine-history-item">
+        <span class="name">HPV 人類乳突病毒</span>
+        <select id="hist_hpv">
+          <option value="unknown">不確定</option>
+          <option value="complete">已完成全程接種</option>
+          <option value="partial">部分接種</option>
+          <option value="never">從未接種</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generate Button -->
+  <div class="form-error" id="formError"></div>
+  <button class="btn-primary no-print" id="generateBtn" onclick="generateRecommendations()">
+    產生疫苗建議 Generate Recommendations
+  </button>
+
+  <!-- Results Section -->
+  <div id="results">
+    <div class="result-summary fade-in">
+      <div class="count" id="vaccineCount">0</div>
+      <div class="label">項建議疫苗 Recommended Vaccines</div>
+    </div>
+
+    <div class="print-actions no-print">
+      <button class="btn-outline" onclick="window.print()" aria-label="列印報告">🖨 列印報告 Print</button>
+      <button class="btn-outline" onclick="copyText()" aria-label="複製文字到剪貼簿">📋 複製文字 Copy</button>
+      <button class="btn-outline" onclick="resetForm()" aria-label="重新輸入表單">↩ 重新輸入 Reset</button>
+    </div>
+
+    <!-- Patient summary for print -->
+    <div class="card" id="patientSummary" style="display:none;"></div>
+
+    <div id="vaccineList"></div>
+
+    <div class="card" id="timelineCard" style="display:none;">
+      <div class="card-title"><span class="icon">📅</span> 建議施打時程 Suggested Timeline</div>
+      <div class="timeline" id="timeline"></div>
+    </div>
+
+    <div class="disclaimer">
+      <strong>免責聲明 Disclaimer:</strong> 本系統根據 CDC/ACIP 2025 年成人疫苗接種時程表及 ADA 指引建立，僅供醫護人員臨床參考，不取代專業醫療判斷。實際接種決策應考量個別病人狀況、禁忌症及當地可用疫苗。
+      <br>Based on CDC/ACIP 2025 Adult Immunization Schedule & ADA guidelines. For clinical reference only.
+      <br>Last updated: 2026-04 (含 2025-08 ACIP Addendum)
+    </div>
+  </div>
+
+</div>
+
+<div class="footer no-print">
+  DM Vaccine Advisor v2.0 | CDC/ACIP 2025-2026 Guidelines<br>
+  Designed for healthcare professionals
+</div>
+
+<script>
+// Checkbox toggle styling
+document.querySelectorAll('.checkbox-item').forEach(item => {
+  const cb = item.querySelector('input[type="checkbox"]');
+  cb.addEventListener('change', () => {
+    item.classList.toggle('checked', cb.checked);
+    // If dialysis is checked, auto-check CKD
+    if (cb.value === 'dialysis' && cb.checked) {
+      const ckdCb = document.querySelector('.checkbox-item[data-value="ckd"] input');
+      if (!ckdCb.checked) { ckdCb.checked = true; ckdCb.closest('.checkbox-item').classList.add('checked'); }
+    }
+    // If transplant is checked, auto-check immunosuppressed
+    if (cb.value === 'transplant' && cb.checked) {
+      const isCb = document.querySelector('.checkbox-item[data-value="immunosuppressed"] input');
+      if (!isCb.checked) { isCb.checked = true; isCb.closest('.checkbox-item').classList.add('checked'); }
+    }
+  });
+});
+
+const PRESETS = {
+  t2dm_mid: {
+    age: 55, dmType: 'T2DM', dmTreatment: 'oha', pregnancy: 'no',
+    comorbidities: [], hist: {}
+  },
+  t2dm_elder: {
+    age: 72, dmType: 'T2DM', dmTreatment: 'insulin', pregnancy: 'no',
+    comorbidities: ['neuropathy'], hist: {}
+  },
+  t2dm_young: {
+    age: 35, dmType: 'T2DM', dmTreatment: 'diet', pregnancy: 'no',
+    comorbidities: [], hist: {}
+  },
+  t1dm: {
+    age: 28, dmType: 'T1DM', dmTreatment: 'insulin', pregnancy: 'no',
+    comorbidities: [], hist: {}
+  },
+  t2dm_ckd: {
+    age: 65, dmType: 'T2DM', dmTreatment: 'insulin_oha', pregnancy: 'no',
+    comorbidities: ['ckd', 'cvd', 'neuropathy'], hist: {}
+  },
+};
+
+function applyPreset(key) {
+  const p = PRESETS[key];
+  if (!p) return;
+
+  // Hide results if shown
+  document.getElementById('results').style.display = 'none';
+
+  // Basic fields
+  document.getElementById('age').value = p.age;
+  document.getElementById('dmType').value = p.dmType;
+  document.getElementById('dmTreatment').value = p.dmTreatment;
+  document.getElementById('pregnancy').value = p.pregnancy;
+
+  // Clear all comorbidities first
+  document.querySelectorAll('#comorbidities input').forEach(cb => {
+    cb.checked = false;
+    cb.closest('.checkbox-item').classList.remove('checked');
+  });
+  // Set preset comorbidities
+  p.comorbidities.forEach(val => {
+    const cb = document.querySelector(`#comorbidities input[value="${val}"]`);
+    if (cb) { cb.checked = true; cb.closest('.checkbox-item').classList.add('checked'); }
+  });
+
+  // Reset all vaccine history to "unknown"
+  document.querySelectorAll('.vaccine-history-item select').forEach(s => s.selectedIndex = 0);
+
+  // Flash the form to show it was filled
+  const form = document.getElementById('inputSection');
+  form.style.transition = 'box-shadow 0.3s';
+  form.style.boxShadow = '0 0 0 3px var(--primary)';
+  setTimeout(() => { form.style.boxShadow = ''; }, 600);
+
+  // Scroll to form
+  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function getInputs() {
+  const age = parseInt(document.getElementById('age').value);
+  const dmType = document.getElementById('dmType').value;
+  const dmTreatment = document.getElementById('dmTreatment').value;
+  const pregnancy = document.getElementById('pregnancy').value === 'yes';
+
+  const comorbidities = [];
+  document.querySelectorAll('#comorbidities input:checked').forEach(cb => comorbidities.push(cb.value));
+
+  return {
+    age, dmType, dmTreatment, pregnancy, comorbidities,
+    hist: {
+      flu: document.getElementById('hist_flu').value,
+      pneumo: document.getElementById('hist_pneumo').value,
+      hepb: document.getElementById('hist_hepb').value,
+      covid: document.getElementById('hist_covid').value,
+      zoster: document.getElementById('hist_zoster').value,
+      tdap: document.getElementById('hist_tdap').value,
+      rsv: document.getElementById('hist_rsv').value,
+      hpv: document.getElementById('hist_hpv').value,
+    },
+    hasComorbidity(c) { return this.comorbidities.includes(c); },
+    isImmunocompromised() {
+      return this.hasComorbidity('immunosuppressed') || this.hasComorbidity('hiv') || this.hasComorbidity('transplant');
+    },
+    hasDMComplications() {
+      return this.hasComorbidity('ckd') || this.hasComorbidity('neuropathy') || this.hasComorbidity('retinopathy');
+    },
+    usesInsulinOrSGLT2i() {
+      return ['insulin', 'insulin_oha', 'sglt2i'].includes(this.dmTreatment);
+    }
+  };
+}
+
+function generateRecommendations() {
+  const p = getInputs();
+
+  const errEl = document.getElementById('formError');
+  if (!p.age || p.age < 18 || !p.dmType) {
+    errEl.textContent = '請填寫年齡（18歲以上）及糖尿病類型';
+    errEl.classList.add('visible');
+    errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  errEl.classList.remove('visible');
+
+  const recs = [];
+
+  // === 1. INFLUENZA ===
+  if (p.hist.flu !== 'current') {
+    const rec = {
+      name: '流感疫苗 Influenza',
+      priority: 'high',
+      vaccines: p.age >= 65
+        ? 'HD-IIV3（高劑量）、RIV3（重組）或 aIIV3（佐劑）優先；若無法取得，則任何年齡適當的 IIV3'
+        : (p.isImmunocompromised() ? 'IIV3（不活化疫苗）— 禁用 LAIV3' : 'IIV3 或 RIV3；DM 患者建議優先使用不活化疫苗（LAIV3 為 precaution）'),
+      doses: '每年 1 劑',
+      timing: '每年 9-10 月接種，流感季期間皆可',
+      rationale: '糖尿病患者感染流感後，高血糖惡化、DKA 及住院風險顯著增加。',
+      schedule_month: 0,
+      notes: [],
+    };
+    if (p.pregnancy) rec.notes.push('孕婦禁用 LAIV3（鼻噴），請使用 IIV3 不活化疫苗。');
+    if (p.isImmunocompromised()) rec.notes.push('免疫抑制病人禁用 LAIV3，僅可使用不活化疫苗。');
+    rec.notes.push('DM 為流感併發症高風險族群，LAIV3 列為 precaution（非禁忌，但建議優先選用 IIV3）。');
+    recs.push(rec);
+  }
+
+  // === 2. PNEUMOCOCCAL ===
+  const pneumoNeeded = (() => {
+    const h = p.hist.pneumo;
+    if (h === 'pcv20') return false; // fully vaccinated
+    if (h === 'pcv13_ppsv23' && !p.isImmunocompromised() && p.age < 50) return false;
+    return true;
+  })();
+
+  if (pneumoNeeded) {
+    const isIC = p.isImmunocompromised();
+    const h = p.hist.pneumo;
+    let vaccineDetail = '';
+    let doseDetail = '';
+    const notes = [];
+
+    if (h === 'never' || h === 'unknown') {
+      vaccineDetail = 'PCV20 或 PCV21（單劑完成，優先推薦）；或 PCV15 + PPSV23';
+      doseDetail = isIC
+        ? 'PCV20/PCV21: 1 劑；或 PCV15 → 8 週後 PPSV23（免疫抑制最短間隔 8 週）'
+        : 'PCV20/PCV21: 1 劑；或 PCV15 → 至少 1 年後 PPSV23';
+      notes.push('PCV21 缺少 serotype 4 覆蓋；若當地 serotype 4 盛行率高，PCV20 或 PCV15+PPSV23 覆蓋更廣。');
+    } else if (h === 'pcv15') {
+      vaccineDetail = 'PPSV23（補打）';
+      doseDetail = isIC ? '距 PCV15 至少 8 週後接種 PPSV23' : '距 PCV15 至少 1 年後接種 PPSV23';
+    } else if (h === 'ppsv23_only') {
+      vaccineDetail = 'PCV20 或 PCV21（補打）';
+      doseDetail = '距上次 PPSV23 至少 1 年後接種';
+    } else if (h === 'pcv13_ppsv23' && p.age >= 50) {
+      vaccineDetail = '考慮 PCV20 或 PCV21（50 歲後常規推薦）';
+      doseDetail = '距上次肺炎鏈球菌疫苗至少 5 年後考慮';
+      notes.push('已完成 PCV13+PPSV23 系列，50 歲以上可考慮補打 PCV20/PCV21，請依臨床判斷。');
+    }
+
+    if (vaccineDetail) {
+      recs.push({
+        name: '肺炎鏈球菌疫苗 Pneumococcal',
+        priority: 'high',
+        vaccines: vaccineDetail,
+        doses: doseDetail,
+        timing: '任何時間皆可接種',
+        rationale: '糖尿病是肺炎鏈球菌感染的獨立危險因子。19-49 歲 DM 為 risk-based indication；50 歲以上為 2024 年起 universal recommendation。',
+        schedule_month: 0,
+        notes: notes,
+      });
+    }
+  }
+
+  // === 3. HEPATITIS B ===
+  if (p.hist.hepb !== 'complete') {
+    const needsHepB = p.age < 60 || p.hasComorbidity('dialysis') || p.hasComorbidity('ckd');
+    const scdm = p.age >= 60 && !p.hasComorbidity('dialysis') && !p.hasComorbidity('ckd');
+
+    if (needsHepB || scdm) {
+      const isDialysis = p.hasComorbidity('dialysis');
+      const rec = {
+        name: 'B 型肝炎疫苗 Hepatitis B',
+        priority: isDialysis ? 'high' : (p.age < 60 ? 'high' : 'medium'),
+        vaccines: isDialysis
+          ? 'Recombivax HB 透析劑型 (40 mcg) 3 劑；或 Engerix-B 2 mL × 4 劑'
+          : 'Heplisav-B (2 劑) 或 Engerix-B/Recombivax HB (3 劑) 或 PreHevbrio (3 劑)',
+        doses: p.hist.hepb === 'partial'
+          ? '補完剩餘劑次（無需重新開始）'
+          : (isDialysis ? '特殊劑量全程系列' : 'Heplisav-B: 0, 4 週共 2 劑；或傳統: 0, 1, 6 月共 3 劑'),
+        timing: '儘快開始',
+        rationale: '糖尿病患者因血糖監測及胰島素注射有經皮暴露風險，' + (scdm ? '60 歲以上為 SCDM（共同臨床決策）建議。' : '59 歲以下為常規建議。'),
+        schedule_month: 0,
+        notes: [],
+      };
+      if (p.pregnancy) rec.notes.push('孕婦不建議使用 PreHevbrio。');
+      if (scdm) rec.notes.push('60 歲以上：依共同臨床決策（SCDM）與病人討論後決定。');
+      recs.push(rec);
+    }
+  }
+
+  // === 4. COVID-19 (2025-2026) ===
+  if (p.hist.covid !== 'current') {
+    const isIC = p.isImmunocompromised();
+    const rec = {
+      name: 'COVID-19 疫苗 (2025-2026)',
+      priority: isIC || p.age >= 65 ? 'high' : 'medium',
+      vaccines: 'Moderna Spikevax、Moderna mNexspike、Pfizer Comirnaty 或 Novavax Nuvaxovid（各品牌無優先差異）',
+      doses: isIC
+        ? '2 劑 2025-2026 疫苗（距前一劑至少 8 週；mNexspike 至少 3 個月）'
+        : (p.age >= 65 ? '2 劑 2025-2026 疫苗（間隔 6 個月；最短 2 個月，mNexspike 最短 3 個月）' : '1 劑 2025-2026 疫苗（距前一劑至少 8 週）'),
+      timing: p.age < 65 && !isIC ? '個人化臨床決策（SCDM）— DM 為高風險因子，風險效益最為有利' : '建議儘快接種',
+      rationale: '糖尿病（T1 及 T2）為 COVID-19 重症已知危險因子。住院風險增加 6 倍，死亡風險增加 12 倍。',
+      schedule_month: 0,
+      notes: [],
+    };
+    if (p.age < 65 && !isIC) rec.notes.push('12-64 歲為 SCDM（共同臨床決策），但 DM 患者風險效益比佳，建議接種。');
+    if (p.age >= 65) rec.notes.push('65 歲以上建議 2 劑，間隔 6 個月。');
+    if (isIC) rec.notes.push('免疫抑制者建議完成 2 劑 2025-2026 疫苗。');
+    recs.push(rec);
+  }
+
+  // === 5. ZOSTER (Shingrix) ===
+  const zosterNeeded = (() => {
+    if (p.hist.zoster === 'complete') return false;
+    if (p.age >= 50) return true;
+    if (p.isImmunocompromised() && p.age >= 19) return true;
+    return false;
+  })();
+
+  if (zosterNeeded) {
+    const h = p.hist.zoster;
+    const rec = {
+      name: '帶狀疱疹疫苗 Zoster (Shingrix)',
+      priority: p.age >= 50 ? 'medium' : 'low',
+      vaccines: 'RZV (Shingrix) — 重組疫苗',
+      doses: h === 'partial' ? '補打第 2 劑（距第 1 劑 2-6 個月）'
+        : h === 'zvl_only' ? '需重新接種 RZV 2 劑系列（不論之前 Zostavax）'
+        : '2 劑系列：第 0 劑 → 2-6 個月後第 2 劑（最短間隔 4 週）',
+      timing: p.isImmunocompromised() ? '19 歲以上免疫抑制者即可接種' : '50 歲以上常規建議',
+      rationale: p.isImmunocompromised()
+        ? '免疫抑制者帶狀疱疹風險顯著升高，19 歲以上即建議接種 RZV。'
+        : '50 歲以上常規建議。糖尿病可能增加帶狀疱疹風險。',
+      schedule_month: 0,
+      notes: [],
+    };
+    if (p.pregnancy) rec.notes.push('建議延至產後再接種。');
+    recs.push(rec);
+  }
+
+  // === 6. Tdap/Td ===
+  if (p.hist.tdap !== 'recent') {
+    const rec = {
+      name: '破傷風/白喉/百日咳 Tdap/Td',
+      priority: p.hist.tdap === 'never' ? 'high' : 'medium',
+      vaccines: 'Tdap（若從未接種過 Tdap）；之後每 10 年追加 Td 或 Tdap',
+      doses: p.hist.tdap === 'never'
+        ? '需完成 3 劑基礎系列（Tdap 1 劑 + Td 2 劑）'
+        : '1 劑 Tdap 或 Td 追加',
+      timing: '糖尿病足部潰瘍及傷口增加破傷風風險，請確認接種狀態',
+      rationale: '糖尿病周邊神經病變及足部潰瘍增加傷口感染風險，破傷風疫苗保護尤其重要。',
+      schedule_month: 0,
+      notes: [],
+    };
+    if (p.pregnancy) rec.notes.push('每次懷孕 27-36 週建議接種 1 劑 Tdap。');
+    recs.push(rec);
+  }
+
+  // === 7. RSV ===
+  const rsvNeeded = (() => {
+    if (p.hist.rsv === 'complete') return false;
+    if (p.age >= 75) return true;
+    if (p.age >= 50 && p.age <= 74) {
+      // Qualifying conditions for 50-74 (June 2025 addendum: expanded to 50-59)
+      if (p.hasDMComplications()) return true;
+      if (p.usesInsulinOrSGLT2i()) return true;
+      if (p.hasComorbidity('cvd')) return true;
+      if (p.hasComorbidity('lung')) return true;
+      if (p.hasComorbidity('cld')) return true;
+      if (p.hasComorbidity('obesity')) return true;
+      if (p.isImmunocompromised()) return true;
+      if (p.hasComorbidity('dialysis')) return true;
+    }
+    return false;
+  })();
+
+  if (rsvNeeded) {
+    const qualifiers = [];
+    if (p.age >= 75) qualifiers.push('75 歲以上常規建議');
+    if (p.hasDMComplications()) qualifiers.push('糖尿病併發症（CKD/神經病變/視網膜病變）');
+    if (p.usesInsulinOrSGLT2i()) qualifiers.push('使用胰島素或 SGLT2i 治療');
+    if (p.hasComorbidity('cvd')) qualifiers.push('心血管疾病');
+    if (p.hasComorbidity('lung')) qualifiers.push('慢性肺病');
+    if (p.hasComorbidity('obesity')) qualifiers.push('BMI≥40');
+    if (p.hasComorbidity('dialysis')) qualifiers.push('洗腎/ESRD');
+
+    recs.push({
+      name: 'RSV 呼吸道融合病毒疫苗',
+      priority: p.age >= 75 ? 'medium' : 'low',
+      vaccines: 'Arexvy、Abrysvo 或 mResvia（無品牌優先）',
+      doses: '單劑（非每年接種）',
+      timing: '建議每年 8-10 月（RSV 季節前）接種',
+      rationale: '符合條件：' + qualifiers.join('、'),
+      schedule_month: 0,
+      notes: [
+        p.age < 75 ? '50-74 歲：符合高風險條件時建議接種（2025 年 6 月 addendum 擴展至 50-59 歲）。' : '',
+        '單劑即可，非每年接種。建議每年 8-10 月 RSV 季節前接種。',
+        '與其他疫苗同時接種可能降低抗體效價並增加局部/全身副作用。',
+      ],
+    });
+  }
+
+  // === 8. HPV ===
+  if (p.hist.hpv !== 'complete' && p.age <= 45) {
+    const isRoutine = p.age <= 26;
+    const isSCDM = p.age >= 27 && p.age <= 45;
+    if (isRoutine || isSCDM) {
+      const isIC = p.isImmunocompromised();
+      const doseCount = (p.age <= 14 && !isIC) ? 2 : 3;
+      const rec = {
+        name: 'HPV 人類乳突病毒疫苗',
+        priority: isRoutine ? 'medium' : 'low',
+        vaccines: '9vHPV (Gardasil 9)',
+        doses: p.hist.hpv === 'partial'
+          ? '補完剩餘劑次（無需重新開始系列）'
+          : (doseCount === 2
+            ? '2 劑系列：0, 6-12 個月（≤14 歲且非免疫抑制）'
+            : '3 劑系列：0, 1-2 個月, 6 個月'),
+        timing: isRoutine ? '26 歲以下常規建議' : '27-45 歲：共同臨床決策（SCDM）',
+        rationale: isRoutine
+          ? 'CDC/ACIP 常規建議 26 歲以下成人接種。'
+          : '27-45 歲成人可透過 SCDM 決定接種，疫苗對未暴露的 HPV 型別仍有保護力。',
+        schedule_month: 0,
+        notes: [],
+      };
+      if (p.pregnancy) rec.notes.push('孕婦不建議接種 HPV 疫苗，建議延至產後。');
+      if (isSCDM) rec.notes.push('27-45 歲：疫苗效益隨年齡遞減，應與病人討論後決定。');
+      recs.push(rec);
+    }
+  }
+
+  // === 9. Additional: Hep A (if CLD) ===
+  if (p.hasComorbidity('cld')) {
+    recs.push({
+      name: 'A 型肝炎疫苗 Hepatitis A',
+      priority: 'low',
+      vaccines: 'HepA 單一抗原疫苗 或 Twinrix (HepA-HepB)',
+      doses: 'HepA: 2 劑 (0, 6-12 月) 或 Twinrix: 3 劑 (0, 1, 6 月)',
+      timing: '任何時間',
+      rationale: '慢性肝病患者建議接種 A 型肝炎疫苗。',
+      schedule_month: 1,
+      notes: [],
+    });
+  }
+
+  // === 10. MenACWY (if asplenia or HIV) ===
+  if (p.hasComorbidity('asplenia') || p.hasComorbidity('hiv')) {
+    recs.push({
+      name: '腦膜炎雙球菌疫苗 MenACWY',
+      priority: 'medium',
+      vaccines: 'MenACWY (Menactra 或 Menveo)',
+      doses: '2 劑系列（間隔至少 8 週），之後每 5 年追加',
+      timing: '儘快開始',
+      rationale: (p.hasComorbidity('asplenia') ? '無脾者' : 'HIV 感染者') + '為腦膜炎高風險族群。',
+      schedule_month: 0,
+      notes: [],
+    });
+  }
+
+  // === Contraindication warnings ===
+  if (p.isImmunocompromised()) {
+    recs.forEach(r => {
+      if (r.name.includes('Influenza') && r.vaccines.includes('LAIV')) {
+        r.contraindications = ['免疫抑制者禁用 LAIV 活疫苗'];
+      }
+    });
+    // MMR/Varicella warning
+    recs.push({
+      name: '⚠ 活疫苗禁忌提醒',
+      priority: 'info',
+      vaccines: 'MMR、Varicella（水痘）、LAIV（鼻噴流感疫苗）',
+      doses: '免疫抑制狀態下禁止接種活疫苗',
+      timing: '',
+      rationale: '嚴重免疫抑制者禁用活疫苗。MMR 及 Varicella 需 CD4 ≥ 200 (HIV) 或非嚴重免疫抑制狀態。',
+      schedule_month: -1,
+      notes: [],
+      isWarning: true,
+    });
+  }
+
+  // Sort by priority
+  const priorityOrder = { high: 0, medium: 1, low: 2, info: 3 };
+  recs.sort((a, b) => (priorityOrder[a.priority] || 99) - (priorityOrder[b.priority] || 99));
+
+  renderResults(p, recs);
+}
+
+function renderResults(patient, recs) {
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('vaccineCount').textContent = recs.filter(r => !r.isWarning).length;
+
+  // Patient summary
+  const summaryEl = document.getElementById('patientSummary');
+  const comorbidityNames = {
+    ckd: 'CKD', dialysis: '洗腎', cvd: 'CVD', cld: '慢性肝病', lung: '慢性肺病',
+    immunosuppressed: '免疫抑制', hiv: 'HIV', obesity: 'BMI≥40',
+    neuropathy: '神經病變', retinopathy: '視網膜病變', asplenia: '無脾', transplant: '器官移植'
+  };
+  const treatmentNames = {
+    diet: '飲食控制', oha: '口服藥', sglt2i: 'SGLT2i', insulin: '胰島素', insulin_oha: '胰島素+口服藥'
+  };
+  summaryEl.style.display = 'block';
+  summaryEl.innerHTML = `
+    <div class="card-title"><span class="icon">👤</span> 病人摘要 Patient Summary</div>
+    <div style="font-size:14px;">
+      <strong>年齡：</strong>${patient.age} 歲 |
+      <strong>DM Type：</strong>${patient.dmType} |
+      <strong>治療：</strong>${treatmentNames[patient.dmTreatment] || '未填'} |
+      <strong>懷孕：</strong>${patient.pregnancy ? '是' : '否'}<br>
+      <strong>共病：</strong>${patient.comorbidities.length ? patient.comorbidities.map(c => comorbidityNames[c]).join('、') : '無'}
+    </div>
+  `;
+
+  // Vaccine cards
+  const listEl = document.getElementById('vaccineList');
+  listEl.innerHTML = '';
+
+  recs.forEach((r, i) => {
+    const priorityLabel = { high: '強烈建議', medium: '建議', low: '可考慮', info: '注意' };
+    const card = document.createElement('div');
+    card.className = `vaccine-card priority-${r.priority} fade-in`;
+    card.style.animationDelay = `${i * 0.05}s`;
+    card.innerHTML = `
+      <div class="vaccine-card-header">
+        <h3>${r.isWarning ? '' : '💉 '}${r.name}</h3>
+        <span class="priority-badge ${r.priority}">${priorityLabel[r.priority]}</span>
+      </div>
+      <div class="vaccine-card-body">
+        <div class="detail-row"><span class="detail-label">疫苗選擇</span><span>${r.vaccines}</span></div>
+        <div class="detail-row"><span class="detail-label">劑量</span><span>${r.doses}</span></div>
+        ${r.timing ? `<div class="detail-row"><span class="detail-label">時機</span><span>${r.timing}</span></div>` : ''}
+        <div class="schedule-box">📋 <strong>依據：</strong>${r.rationale}</div>
+        ${r.notes && r.notes.filter(n=>n).length ? r.notes.filter(n=>n).map(n => `<div class="note">📌 ${n}</div>`).join('') : ''}
+        ${r.contraindications ? r.contraindications.map(c => `<div class="contraindication">⛔ ${c}</div>`).join('') : ''}
+      </div>
+    `;
+    listEl.appendChild(card);
+  });
+
+  // Timeline
+  buildTimeline(recs);
+
+  // Scroll to results
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function buildTimeline(recs) {
+  const activeRecs = recs.filter(r => !r.isWarning);
+  if (!activeRecs.length) return;
+
+  const card = document.getElementById('timelineCard');
+  const tl = document.getElementById('timeline');
+  card.style.display = 'block';
+  tl.innerHTML = '';
+
+  const now = new Date();
+  const monthNames = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+
+  // Group: immediate, 1-2 months, 4-6 months, 6-12 months, annual
+  const groups = [
+    { label: '立即 / 本次門診 Now', items: [] },
+    { label: `1-2 個月後 (${monthNames[(now.getMonth()+1)%12]} - ${monthNames[(now.getMonth()+2)%12]})`, items: [] },
+    { label: `4-6 個月後`, items: [] },
+    { label: `6-12 個月後`, items: [] },
+    { label: '每年追蹤 Annual', items: [] },
+  ];
+
+  activeRecs.forEach(r => {
+    // Immediate vaccines
+    groups[0].items.push(r.name);
+
+    // Second doses / follow-ups
+    if (r.name.includes('Zoster') && r.doses.includes('2 劑')) {
+      groups[2].items.push('Shingrix 第 2 劑');
+    }
+    if (r.name.includes('Hepatitis B') && r.doses.includes('3 劑')) {
+      groups[1].items.push('HepB 第 2 劑');
+      groups[3].items.push('HepB 第 3 劑');
+    }
+    if (r.name.includes('Hepatitis B') && r.doses.includes('2 劑') && !r.doses.includes('3 劑')) {
+      groups[1].items.push('Heplisav-B 第 2 劑');
+    }
+    if (r.name.includes('Pneumococcal') && r.doses.includes('PPSV23')) {
+      if (r.doses.includes('8 週')) {
+        groups[1].items.push('PPSV23（距 PCV15 至少 8 週）');
+      } else if (r.doses.includes('1 年')) {
+        groups[3].items.push('PPSV23（距 PCV15 至少 1 年）');
+      }
+    }
+    if (r.name.includes('COVID-19') && r.doses.includes('2 劑')) {
+      groups[3].items.push('COVID-19 第 2 劑（距第 1 劑 6 個月）');
+    }
+    if (r.name.includes('HPV') && r.doses.includes('3 劑')) {
+      groups[1].items.push('HPV 第 2 劑');
+      groups[3].items.push('HPV 第 3 劑（第 6 個月）');
+    }
+    if (r.name.includes('HPV') && r.doses.includes('2 劑')) {
+      groups[3].items.push('HPV 第 2 劑（第 6-12 個月）');
+    }
+    if (r.name.includes('Influenza')) {
+      groups[4].items.push('流感疫苗追加');
+    }
+  });
+
+  groups.forEach(g => {
+    if (!g.items.length) return;
+    const div = document.createElement('div');
+    div.className = 'timeline-item';
+    div.innerHTML = `
+      <div class="time-label">${g.label}</div>
+      <div class="time-content">${[...new Set(g.items)].join('、')}</div>
+    `;
+    tl.appendChild(div);
+  });
+}
+
+function copyText() {
+  const recs = document.getElementById('vaccineList');
+  const summary = document.getElementById('patientSummary');
+  const timeline = document.getElementById('timelineCard');
+  let text = summary.innerText + '\n\n' + recs.innerText;
+  if (timeline.style.display !== 'none') text += '\n\n' + timeline.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = '✓ 已複製';
+    setTimeout(() => btn.textContent = '📋 複製文字 Copy', 2000);
+  });
+}
+
+function resetForm() {
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('age').value = '';
+  document.getElementById('dmType').value = 'T2DM';
+  document.getElementById('dmTreatment').value = 'oha';
+  document.getElementById('pregnancy').value = 'no';
+  document.querySelectorAll('#comorbidities input:checked').forEach(cb => {
+    cb.checked = false;
+    cb.closest('.checkbox-item').classList.remove('checked');
+  });
+  document.querySelectorAll('.vaccine-history-item select').forEach(s => s.selectedIndex = 0);
+  document.getElementById('inputSection').scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
