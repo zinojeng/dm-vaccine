@@ -1351,9 +1351,28 @@ function generateRecommendations() {
     });
   }
 
-  // Sort by priority
+  // Sort: 1st by priority level, 2nd by clinical frequency for DM patients
   const priorityOrder = { high: 0, medium: 1, low: 2, info: 3 };
-  recs.sort((a, b) => (priorityOrder[a.priority] || 99) - (priorityOrder[b.priority] || 99));
+  // Lower number = more commonly needed / higher clinical relevance for DM
+  const frequencyOrder = {
+    'Influenza': 0,       // 每年都打，最常用
+    'Pneumococcal': 1,    // DM 特有適應症，幾乎都需要
+    'Hepatitis B': 2,     // DM 特有適應症
+    'COVID-19': 3,        // 年度更新，高度普及
+    'Tdap': 4,            // 常規追加，DM 足部風險
+    'Zoster': 5,          // 50+ 常規
+    'RSV': 6,             // 較新疫苗，條件性
+    'HPV': 7,             // 年輕族群
+    'Hepatitis A': 8,     // 僅 CLD 共病
+    'MenACWY': 9,         // 僅特殊共病
+  };
+  recs.sort((a, b) => {
+    const pDiff = (priorityOrder[a.priority] ?? 99) - (priorityOrder[b.priority] ?? 99);
+    if (pDiff !== 0) return pDiff;
+    const aFreq = Object.keys(frequencyOrder).find(k => a.name.includes(k));
+    const bFreq = Object.keys(frequencyOrder).find(k => b.name.includes(k));
+    return (frequencyOrder[aFreq] ?? 99) - (frequencyOrder[bFreq] ?? 99);
+  });
 
   renderResults(p, recs);
 }
