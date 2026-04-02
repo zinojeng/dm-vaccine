@@ -783,7 +783,7 @@ const GLOSSARY = {
   'RZV': { full: 'Recombinant Zoster Vaccine', desc: '重組帶狀疱疹疫苗（Shingrix），含 AS01B 佐劑。非活疫苗，免疫抑制者也可接種。2 劑系列，間隔 2-6 個月。' },
   'Shingrix': { full: 'Shingrix (RZV)', desc: '重組帶狀疱疹疫苗，疫苗效力約 97%（50-69 歲）及 91%（≥70 歲），保護力可持續至少 10 年。' },
   'Tdap': { full: 'Tetanus, Diphtheria, Pertussis (acellular)', desc: '破傷風、白喉、非細胞性百日咳混合疫苗。成人追加用。每次懷孕 27-36 週建議接種 1 劑。' },
-  'SCDM': { full: 'Shared Clinical Decision-Making', desc: '共同臨床決策：由醫師與病人共同討論疫苗的風險效益後決定是否接種。不同於「常規建議」，SCDM 代表接種並非自動適用所有人，而需個別評估。' },
+  'SDM': { full: 'Shared Decision-Making（共同臨床決策）', desc: '由醫師與病人共同討論疫苗的風險效益後決定是否接種。不同於「常規建議（Recommended）」自動適用，SDM 代表需個別評估、與病人討論後決定。常見於：COVID-19（12-64 歲）、HepB（≥60 歲）、HPV（27-45 歲）、RSV（60-74 歲）。CDC/ACIP 亦稱 SCDM（Shared Clinical Decision-Making）。' },
   'DKA': { full: 'Diabetic Ketoacidosis', desc: '糖尿病酮酸中毒，為糖尿病嚴重急性併發症，常因感染（如流感）誘發。' },
   'SGLT2i': { full: 'Sodium-Glucose Co-Transporter 2 Inhibitor', desc: 'SGLT2 抑制劑（如 empagliflozin、dapagliflozin），除降血糖外還具有心腎保護作用。使用 SGLT2i 被 ACIP 視為 DM 嚴重度的替代指標之一。' },
   'serotype 4': { full: 'Pneumococcal Serotype 4', desc: '肺炎鏈球菌血清型 4，在某些地區是造成侵襲性肺炎鏈球菌疾病的重要型別。PCV21 不含此型別，這是選擇 PCV20 的考量之一。' },
@@ -898,7 +898,7 @@ const VACCINE_DETAILS = {
     <h4>年齡建議差異</h4>
     <ul>
       <li><strong>19-59 歲：</strong>2022 年起為 universal recommendation（所有成人皆建議）</li>
-      <li><strong>≥ 60 歲：</strong>SCDM（共同臨床決策）— DM 為考量因素之一。若病人主動要求，即應給予</li>
+      <li><strong>≥ 60 歲：</strong>SDM（共同臨床決策）— DM 為考量因素之一。若病人主動要求，即應給予</li>
     </ul>
     <h4>禁忌症</h4>
     <p>對前一劑或疫苗成分（含酵母）嚴重過敏。PreHevbrio 於孕期禁用。</p>
@@ -919,7 +919,7 @@ const VACCINE_DETAILS = {
     </ul>
     <h4>劑量建議</h4>
     <ul>
-      <li><strong>12-64 歲：</strong>SCDM — DM 患者風險效益比佳，建議接種 1 劑</li>
+      <li><strong>12-64 歲：</strong>SDM — DM 患者風險效益比佳，建議接種 1 劑</li>
       <li><strong>≥ 65 歲：</strong>建議 2 劑，間隔 6 個月（最短 2 個月）</li>
       <li><strong>免疫抑制：</strong>建議 2 劑</li>
     </ul>
@@ -1015,7 +1015,7 @@ const VACCINE_DETAILS = {
     <h4>年齡建議</h4>
     <ul>
       <li><strong>≤ 26 歲：</strong>常規建議（routine）</li>
-      <li><strong>27-45 歲：</strong>SCDM — 效益隨年齡遞減，對未曾暴露的 HPV 型別仍有保護力</li>
+      <li><strong>27-45 歲：</strong>SDM — 效益隨年齡遞減，對未曾暴露的 HPV 型別仍有保護力</li>
       <li><strong>> 45 歲：</strong>不建議接種</li>
     </ul>
     <h4>劑量</h4>
@@ -1372,12 +1372,12 @@ function generateRecommendations() {
           ? '補完剩餘劑次（無需重新開始）'
           : (isDialysis ? '特殊劑量全程系列' : 'Heplisav-B: 0, 4 週共 2 劑；或傳統: 0, 1, 6 月共 3 劑'),
         timing: '儘快開始',
-        rationale: '糖尿病患者因血糖監測及胰島素注射有經皮暴露風險，' + (scdm ? '60 歲以上為 SCDM（共同臨床決策）建議。' : '59 歲以下為常規建議。'),
+        rationale: '糖尿病患者因血糖監測及胰島素注射有經皮暴露風險，' + (scdm ? '60 歲以上為 SDM（共同臨床決策）建議。' : '59 歲以下為常規建議。'),
         schedule_month: 0,
         notes: [],
       };
       if (p.pregnancy) rec.notes.push('孕婦不建議使用 PreHevbrio。');
-      if (scdm) rec.notes.push('60 歲以上：依共同臨床決策（SCDM）與病人討論後決定。');
+      if (scdm) rec.notes.push('60 歲以上：依共同臨床決策（SDM）與病人討論後決定。');
       if (isDialysis || p.isImmunocompromised()) rec.notes.push('建議完成接種後 1-2 個月檢測 anti-HBs（≥10 mIU/mL 為保護性抗體）。若無反應，可重新接種（ACIP）。');
       if (p.hasComorbidity('ckd') && !isDialysis) rec.notes.push('ADA 建議 CKD 可能進展至腎衰竭者應及早接種 HepB（ADA Standards of Care Section 11）。');
       recs.push(rec);
@@ -1394,12 +1394,12 @@ function generateRecommendations() {
       doses: isIC
         ? '2 劑 2025-2026 疫苗（距前一劑至少 8 週；mNexspike 至少 3 個月）'
         : (p.age >= 65 ? '2 劑 2025-2026 疫苗（間隔 6 個月；最短 2 個月，mNexspike 最短 3 個月）' : '1 劑 2025-2026 疫苗（距前一劑至少 8 週）'),
-      timing: p.age < 65 && !isIC ? '個人化臨床決策（SCDM）— DM 為高風險因子，風險效益最為有利' : '建議儘快接種',
+      timing: p.age < 65 && !isIC ? '個人化臨床決策（SDM）— DM 為高風險因子，風險效益最為有利' : '建議儘快接種',
       rationale: '糖尿病（T1 及 T2）為 COVID-19 重症已知危險因子。住院風險增加 6 倍，死亡風險增加 12 倍。',
       schedule_month: 0,
       notes: [],
     };
-    if (p.age < 65 && !isIC) rec.notes.push('12-64 歲為 SCDM（共同臨床決策），但 DM 患者風險效益比佳，建議接種。');
+    if (p.age < 65 && !isIC) rec.notes.push('12-64 歲為 SDM（共同臨床決策），但 DM 患者風險效益比佳，建議接種。');
     if (p.age >= 65) rec.notes.push('65 歲以上建議 2 劑，間隔 6 個月。');
     if (isIC) rec.notes.push('免疫抑制者建議完成 2 劑 2025-2026 疫苗。');
     const covidIC = getICTimingNote('covid');
@@ -1508,8 +1508,8 @@ function generateRecommendations() {
   // === 8. HPV ===
   if (p.hist.hpv !== 'complete' && p.age <= 45) {
     const isRoutine = p.age <= 26;
-    const isSCDM = p.age >= 27 && p.age <= 45;
-    if (isRoutine || isSCDM) {
+    const isSDM = p.age >= 27 && p.age <= 45;
+    if (isRoutine || isSDM) {
       const isIC = p.isImmunocompromised();
       const doseCount = (p.age <= 14 && !isIC) ? 2 : 3;
       const rec = {
@@ -1521,15 +1521,15 @@ function generateRecommendations() {
           : (doseCount === 2
             ? '2 劑系列：0, 6-12 個月（≤14 歲且非免疫抑制）'
             : '3 劑系列：0, 1-2 個月, 6 個月'),
-        timing: isRoutine ? '26 歲以下常規建議' : '27-45 歲：共同臨床決策（SCDM）',
+        timing: isRoutine ? '26 歲以下常規建議' : '27-45 歲：共同臨床決策（SDM）',
         rationale: isRoutine
           ? 'CDC/ACIP 常規建議 26 歲以下成人接種。'
-          : '27-45 歲成人可透過 SCDM 決定接種，疫苗對未暴露的 HPV 型別仍有保護力。',
+          : '27-45 歲成人可透過 SDM 決定接種，疫苗對未暴露的 HPV 型別仍有保護力。',
         schedule_month: 0,
         notes: [],
       };
       if (p.pregnancy) rec.notes.push('孕婦不建議接種 HPV 疫苗，建議延至產後。');
-      if (isSCDM) rec.notes.push('27-45 歲：疫苗效益隨年齡遞減，應與病人討論後決定。');
+      if (isSDM) rec.notes.push('27-45 歲：疫苗效益隨年齡遞減，應與病人討論後決定。');
       recs.push(rec);
     }
   }
@@ -1635,14 +1635,14 @@ function getPersonalizedAdvice(patient, vaccineKey) {
 
   if (vaccineKey === 'Hepatitis B') {
     if (a < 60) tips.push(`病人 ${a} 歲（<60），為 universal recommendation。推薦 Heplisav-B（僅需 2 劑，方便性最高）。`);
-    else tips.push(`病人 ${a} 歲（≥60），為 SCDM。使用${treat}治療，建議與病人討論 HepB 接種效益。`);
+    else tips.push(`病人 ${a} 歲（≥60），為 SDM。使用${treat}治療，建議與病人討論 HepB 接種效益。`);
     if (patient.hasComorbidity('dialysis')) tips.push('透析病人需使用<strong>高劑量</strong>（Recombivax HB 40mcg 或 Engerix-B 雙倍）。完成後 1-2 個月檢測 anti-HBs。');
     if (patient.hasComorbidity('ckd') && !patient.hasComorbidity('dialysis')) tips.push('CKD 患者建議及早接種，避免等到進展至透析階段（ADA Section 11）。');
   }
 
   if (vaccineKey === 'COVID-19') {
     if (a >= 65) tips.push(`病人 ${a} 歲（≥65），建議接種 <strong>2 劑</strong> 2025-2026 疫苗，間隔 6 個月。`);
-    else tips.push(`病人 ${a} 歲（<65），為 SCDM。但 DM 為 COVID-19 重症獨立危險因子（住院 6x、死亡 12x），風險效益比佳，<strong>建議接種</strong>。`);
+    else tips.push(`病人 ${a} 歲（<65），為 SDM。但 DM 為 COVID-19 重症獨立危險因子（住院 6x、死亡 12x），風險效益比佳，<strong>建議接種</strong>。`);
     if (patient.isImmunocompromised()) tips.push('免疫抑制者建議完成 2 劑，且 VE 約 37-46%（低於一般人但仍有意義）。');
   }
 
@@ -1668,7 +1668,7 @@ function getPersonalizedAdvice(patient, vaccineKey) {
 
   if (vaccineKey === 'HPV') {
     if (a <= 26) tips.push(`病人 ${a} 歲（≤26），為 HPV 常規建議接種年齡。`);
-    else tips.push(`病人 ${a} 歲（27-45），為 SCDM。疫苗對未曾暴露的 HPV 型別仍有保護力，效益隨年齡遞減。`);
+    else tips.push(`病人 ${a} 歲（27-45），為 SDM。疫苗對未曾暴露的 HPV 型別仍有保護力，效益隨年齡遞減。`);
   }
 
   if (!tips.length) return '';
