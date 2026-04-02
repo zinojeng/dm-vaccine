@@ -1736,7 +1736,7 @@ function renderResults(patient, recs) {
     rsv: { name: 'RSV', unknown: '不確定', complete: '已接種', never: '從未' },
     hpv: { name: 'HPV', unknown: '不確定', complete: '已完成', partial: '部分', never: '從未' },
   };
-  const histSummary = Object.entries(patient.hist).map(([key, val]) => {
+  const histSummary = Object.entries(patient.hist).filter(([key, val]) => val !== 'unknown').map(([key, val]) => {
     const info = histLabels[key];
     if (!info) return '';
     const label = info[val] || val;
@@ -1756,10 +1756,10 @@ function renderResults(patient, recs) {
       <strong>懷孕：</strong>${patient.pregnancy ? '是' : '否'}<br>
       <strong>共病：</strong>${patient.comorbidities.length ? patient.comorbidities.map(c => comorbidityNames[c]).join('、') : '無'}
     </div>
-    <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
+    ${histSummary ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
       <strong style="font-size:13px;">過去疫苗接種紀錄：</strong><br>
       <div style="margin-top:4px;line-height:1.8;">${histSummary}</div>
-    </div>
+    </div>` : ''}
   `;
 
   // Vaccine cards — batch DOM insertion via DocumentFragment
