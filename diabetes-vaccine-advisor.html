@@ -752,6 +752,33 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 
 </div>
 
+<!-- Feedback Section -->
+<div class="container no-print">
+  <div class="card" id="feedbackCard">
+    <div class="card-title"><span class="icon">💬</span> 意見回饋 Feedback</div>
+    <div class="form-group">
+      <label>您的姓名或單位 <span class="hint">(選填)</span></label>
+      <input type="text" id="fbName" placeholder="例：王醫師 / 某某醫院" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:15px;font-family:inherit;">
+    </div>
+    <div class="form-group">
+      <label>意見內容 <span class="hint">(建議、錯誤回報、功能需求等)</span></label>
+      <textarea id="fbMessage" rows="4" placeholder="請輸入您的意見..." style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:15px;font-family:inherit;resize:vertical;"></textarea>
+    </div>
+    <div class="form-group">
+      <select id="fbType" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:15px;font-family:inherit;">
+        <option value="suggestion">建議改善 Suggestion</option>
+        <option value="bug">錯誤回報 Bug Report</option>
+        <option value="content">內容修正 Content Correction</option>
+        <option value="feature">功能需求 Feature Request</option>
+        <option value="other">其他 Other</option>
+      </select>
+    </div>
+    <button class="btn-primary" onclick="sendFeedback()" id="fbSendBtn">送出意見 Send Feedback</button>
+    <div class="form-error" id="fbError"></div>
+    <div id="fbSuccess" style="display:none;color:var(--success);font-size:14px;margin-top:10px;text-align:center;"></div>
+  </div>
+</div>
+
 <div class="glossary-popup" id="glossaryPopup">
   <div class="gp-term" id="gpTerm"></div>
   <div class="gp-body" id="gpBody"></div>
@@ -1781,6 +1808,51 @@ function resetForm() {
   $icType.value = 'unspecified';
   document.getElementById('icTypeGroup').style.display = 'none';
   $inputSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+// ===== FEEDBACK =====
+function sendFeedback() {
+  const name = document.getElementById('fbName').value.trim();
+  const message = document.getElementById('fbMessage').value.trim();
+  const type = document.getElementById('fbType').value;
+  const errEl = document.getElementById('fbError');
+  const successEl = document.getElementById('fbSuccess');
+
+  if (!message) {
+    errEl.textContent = '請輸入意見內容';
+    errEl.classList.add('visible');
+    return;
+  }
+  errEl.classList.remove('visible');
+
+  const typeLabels = {
+    suggestion: '建議改善',
+    bug: '錯誤回報',
+    content: '內容修正',
+    feature: '功能需求',
+    other: '其他'
+  };
+
+  const subject = encodeURIComponent(`[DM Vaccine Advisor] ${typeLabels[type]} — ${name || '匿名'}`);
+  const body = encodeURIComponent(
+    `類型：${typeLabels[type]}\n` +
+    `姓名/單位：${name || '未填寫'}\n` +
+    `時間：${new Date().toLocaleString('zh-TW')}\n` +
+    `---\n\n${message}\n\n` +
+    `---\n` +
+    `DM Vaccine Advisor v3.0`
+  );
+
+  window.location.href = `mailto:zinojeng@gmail.com?subject=${subject}&body=${body}`;
+
+  // Show success message
+  successEl.textContent = '已開啟郵件程式，請確認送出。感謝您的回饋！';
+  successEl.style.display = 'block';
+  document.getElementById('fbSendBtn').textContent = '✓ 已開啟郵件';
+  setTimeout(() => {
+    document.getElementById('fbSendBtn').textContent = '送出意見 Send Feedback';
+    successEl.style.display = 'none';
+  }, 5000);
 }
 </script>
 </body>
