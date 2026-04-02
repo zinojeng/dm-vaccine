@@ -1047,7 +1047,7 @@ const VACCINE_DETAILS = {
 };
 
 // ===== VERSION =====
-const APP_VERSION = 'v3.1.2';
+const APP_VERSION = 'v3.1.3';
 document.title = `糖尿病疫苗接種建議系統 | DM Vaccine Advisor ${APP_VERSION}`;
 
 // ===== CACHED DOM REFERENCES =====
@@ -1760,21 +1760,31 @@ function renderResults(patient, recs) {
   listEl.appendChild(frag);
 
   // Timeline
-  buildTimeline(recs);
+  buildTimeline(recs, patient);
 
   // Scroll to results
   $results.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function buildTimeline(recs) {
+function buildTimeline(recs, patient) {
   const activeRecs = recs.filter(r => !r.isWarning);
   if (!activeRecs.length) return;
 
   $timelineCard.style.display = 'block';
   const now = new Date();
   const monthNames = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+  const isPregnant = patient && patient.pregnancy;
 
-  // Group: immediate, 1-2 months, 4-6 months, 6-12 months, annual
+  // Vaccines deferred for pregnancy
+  const deferPostpartum = new Set();
+  if (isPregnant) {
+    activeRecs.forEach(r => {
+      if (r.name.includes('HPV')) deferPostpartum.add(r.name);
+      if (r.name.includes('Zoster')) deferPostpartum.add(r.name);
+    });
+  }
+
+  // Groups
   const groups = [
     { label: '立即 / 本次門診 Now', items: [] },
     { label: `1-2 個月後 (${monthNames[(now.getMonth()+1)%12]} - ${monthNames[(now.getMonth()+2)%12]})`, items: [] },
@@ -1782,10 +1792,25 @@ function buildTimeline(recs) {
     { label: `6-12 個月後`, items: [] },
     { label: '每年追蹤 Annual', items: [] },
   ];
+  // Postpartum group (only for pregnant patients)
+  if (isPregnant) groups.push({ label: '產後 Postpartum', items: [] });
+  const postpartumIdx = groups.length - 1;
 
   activeRecs.forEach(r => {
+    // Check if this vaccine is deferred for pregnancy
+    if (deferPostpartum.has(r.name)) {
+      if (isPregnant) groups[postpartumIdx].items.push(r.name + '（產後開始接種）');
+      return; // skip all other timeline entries for this vaccine
+    }
+
     // Immediate vaccines
     groups[0].items.push(r.name);
+
+    // Pregnancy-specific: Tdap timing
+    if (isPregnant && r.name.includes('Tdap')) {
+      groups[0].items.pop(); // remove from immediate
+      groups[0].items.push('Tdap（懷孕 27-36 週接種）');
+    }
 
     // Second doses / follow-ups
     if (r.name.includes('Zoster') && r.doses.includes('2 劑')) {
