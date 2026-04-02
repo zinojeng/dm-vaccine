@@ -257,7 +257,8 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 }
 .vaccine-card.priority-high { border-left-color: var(--danger); }
 .vaccine-card.priority-medium { border-left-color: var(--warning); }
-.vaccine-card.priority-low { border-left-color: var(--success); }
+.vaccine-card.priority-conditional { border-left-color: #1a8a8a; }
+.vaccine-card.priority-discuss { border-left-color: #7b61c4; }
 
 .vaccine-card-header {
   padding: 14px 16px;
@@ -290,7 +291,8 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 }
 .priority-badge.high { background: var(--danger-light); color: var(--danger); }
 .priority-badge.medium { background: var(--warning-light); color: #e37400; }
-.priority-badge.low { background: var(--success-light); color: var(--success); }
+.priority-badge.conditional { background: #e0f5f5; color: #1a8a8a; }
+.priority-badge.discuss { background: #f0ebfa; color: #7b61c4; }
 .priority-badge.info { background: #e8eaed; color: var(--info); }
 
 .vaccine-card-body {
@@ -1195,7 +1197,7 @@ function generateRecommendations() {
     const h = p.hist.zoster;
     const rec = {
       name: '帶狀疱疹疫苗 Zoster (Shingrix)',
-      priority: p.age >= 50 ? 'medium' : 'low',
+      priority: p.age >= 50 ? 'medium' : 'conditional',
       vaccines: 'RZV (Shingrix) — 重組疫苗',
       doses: h === 'partial' ? '補打第 2 劑（距第 1 劑 2-6 個月）'
         : h === 'zvl_only' ? '需重新接種 RZV 2 劑系列（不論之前 Zostavax）'
@@ -1259,7 +1261,7 @@ function generateRecommendations() {
 
     recs.push({
       name: 'RSV 呼吸道融合病毒疫苗',
-      priority: p.age >= 75 ? 'medium' : 'low',
+      priority: p.age >= 75 ? 'medium' : 'conditional',
       vaccines: 'Arexvy、Abrysvo 或 mResvia（無品牌優先）',
       doses: '單劑（非每年接種）',
       timing: '建議每年 8-10 月（RSV 季節前）接種',
@@ -1282,7 +1284,7 @@ function generateRecommendations() {
       const doseCount = (p.age <= 14 && !isIC) ? 2 : 3;
       const rec = {
         name: 'HPV 人類乳突病毒疫苗',
-        priority: isRoutine ? 'medium' : 'low',
+        priority: isRoutine ? 'medium' : 'discuss',
         vaccines: '9vHPV (Gardasil 9)',
         doses: p.hist.hpv === 'partial'
           ? '補完剩餘劑次（無需重新開始系列）'
@@ -1306,7 +1308,7 @@ function generateRecommendations() {
   if (p.hasComorbidity('cld')) {
     recs.push({
       name: 'A 型肝炎疫苗 Hepatitis A',
-      priority: 'low',
+      priority: 'conditional',
       vaccines: 'HepA 單一抗原疫苗 或 Twinrix (HepA-HepB)',
       doses: 'HepA: 2 劑 (0, 6-12 月) 或 Twinrix: 3 劑 (0, 1, 6 月)',
       timing: '任何時間',
@@ -1352,7 +1354,7 @@ function generateRecommendations() {
   }
 
   // Sort: 1st by priority level, 2nd by clinical frequency for DM patients
-  const priorityOrder = { high: 0, medium: 1, low: 2, info: 3 };
+  const priorityOrder = { high: 0, medium: 1, conditional: 2, discuss: 3, info: 4 };
   // Lower number = more commonly needed / higher clinical relevance for DM
   const frequencyOrder = {
     'Influenza': 0,       // 每年都打，最常用
@@ -1408,7 +1410,7 @@ function renderResults(patient, recs) {
   listEl.innerHTML = '';
 
   recs.forEach((r, i) => {
-    const priorityLabel = { high: '強烈建議', medium: '建議', low: '可考慮', info: '注意' };
+    const priorityLabel = { high: '強烈建議', medium: '建議', conditional: '依條件建議', discuss: '建議討論', info: '注意' };
     const card = document.createElement('div');
     card.className = `vaccine-card priority-${r.priority} fade-in`;
     card.style.animationDelay = `${i * 0.05}s`;
