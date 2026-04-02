@@ -758,7 +758,7 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 </div>
 
 <div class="footer no-print">
-  DM Vaccine Advisor v3.0 | CDC/ACIP + ADA + IDSA + 台灣 CDC<br>
+  DM Vaccine Advisor <span id="appVersion"></span> | CDC/ACIP + ADA + IDSA + 台灣 CDC<br>
   Created by <strong>Dr. Tseng</strong>, Endocrinologist @ Tung's Taichung MetroHarbor Hospital<br>
   <a href="mailto:zinojeng@gmail.com" style="color:var(--primary);text-decoration:none;">zinojeng@gmail.com</a>
 </div>
@@ -1046,6 +1046,10 @@ const VACCINE_DETAILS = {
     </ul>`,
 };
 
+// ===== VERSION =====
+const APP_VERSION = 'v3.1';
+document.title = `糖尿病疫苗接種建議系統 | DM Vaccine Advisor ${APP_VERSION}`;
+
 // ===== CACHED DOM REFERENCES =====
 const $age = document.getElementById('age');
 const $dmType = document.getElementById('dmType');
@@ -1060,6 +1064,9 @@ const $timelineCard = document.getElementById('timelineCard');
 const $timeline = document.getElementById('timeline');
 const $formError = document.getElementById('formError');
 const $inputSection = document.getElementById('inputSection');
+
+// Set version in footer
+document.getElementById('appVersion').textContent = APP_VERSION;
 
 // Checkbox toggle — single delegated listener instead of per-element
 document.getElementById('comorbidities').addEventListener('change', (e) => {
@@ -1602,6 +1609,75 @@ function generateRecommendations() {
   renderResults(p, recs);
 }
 
+// ===== PERSONALIZED ADVICE GENERATOR =====
+function getPersonalizedAdvice(patient, vaccineKey) {
+  const a = patient.age;
+  const tips = [];
+  const treatNames = { diet:'飲食控制', oha:'口服藥（非SGLT2i）', sglt2i:'SGLT2i', insulin:'胰島素', insulin_oha:'胰島素+口服藥' };
+  const treat = treatNames[patient.dmTreatment] || '';
+
+  if (vaccineKey === 'Influenza') {
+    if (a >= 65) {
+      tips.push(`您的病人 ${a} 歲，屬於 ≥65 歲族群。建議優先選用<strong>佐劑型疫苗（aIIV3/FLUAD）</strong>，其 PCR 陽性住院 rVE 為 61.6%，三種加強型中最高。`);
+      if (patient.comorbidities.length >= 3) tips.push(`此病人有 ${patient.comorbidities.length} 項共病（≥3），研究顯示 aIIV3 在多重共病者效果優於 HD-IIV3。`);
+    } else {
+      tips.push(`您的病人 ${a} 歲（<65），使用標準 IIV3 或 RIV3 即可。ADA 明確建議 DM 患者不應使用鼻噴型 LAIV3。`);
+    }
+    if (patient.pregnancy) tips.push('孕婦應使用 IIV3（不活化），禁用 LAIV3。建議任何孕期皆可接種。');
+  }
+
+  if (vaccineKey === 'Pneumococcal') {
+    if (a < 50) tips.push(`病人 ${a} 歲，因 ${patient.dmType} 屬於 risk-based indication（19-49 歲）。CAPiTA 試驗顯示 PCV13 在 DM 患者 VE 高達 89.5%，疫苗效果佳。`);
+    else tips.push(`病人 ${a} 歲，≥50 歲為 universal recommendation，不論有無 DM 皆建議。`);
+    tips.push('台灣 IPD 血清型分布顯示 <strong>PCV21 覆蓋率（67-85%）遠高於 PCV20（37-47%）</strong>，建議在台灣優先選用 PCV21。');
+    if (patient.isImmunocompromised()) tips.push('免疫抑制者：PCV15 + PPSV23 間隔可縮短至 <strong>8 週</strong>（一般為 1 年）。');
+  }
+
+  if (vaccineKey === 'Hepatitis B') {
+    if (a < 60) tips.push(`病人 ${a} 歲（<60），為 universal recommendation。推薦 Heplisav-B（僅需 2 劑，方便性最高）。`);
+    else tips.push(`病人 ${a} 歲（≥60），為 SCDM。使用${treat}治療，建議與病人討論 HepB 接種效益。`);
+    if (patient.hasComorbidity('dialysis')) tips.push('透析病人需使用<strong>高劑量</strong>（Recombivax HB 40mcg 或 Engerix-B 雙倍）。完成後 1-2 個月檢測 anti-HBs。');
+    if (patient.hasComorbidity('ckd') && !patient.hasComorbidity('dialysis')) tips.push('CKD 患者建議及早接種，避免等到進展至透析階段（ADA Section 11）。');
+  }
+
+  if (vaccineKey === 'COVID-19') {
+    if (a >= 65) tips.push(`病人 ${a} 歲（≥65），建議接種 <strong>2 劑</strong> 2025-2026 疫苗，間隔 6 個月。`);
+    else tips.push(`病人 ${a} 歲（<65），為 SCDM。但 DM 為 COVID-19 重症獨立危險因子（住院 6x、死亡 12x），風險效益比佳，<strong>建議接種</strong>。`);
+    if (patient.isImmunocompromised()) tips.push('免疫抑制者建議完成 2 劑，且 VE 約 37-46%（低於一般人但仍有意義）。');
+  }
+
+  if (vaccineKey === 'Zoster') {
+    const dmHZRisk = patient.hasDMComplications() || patient.hasComorbidity('cvd');
+    if (a >= 50) tips.push(`病人 ${a} 歲（≥50），為常規建議。DM 患者帶狀疱疹 RR 1.24-2.1，建議接種 Shingrix 2 劑。`);
+    else if (dmHZRisk) tips.push(`病人 ${a} 歲（<50），但合併 DM 併發症/CVD。台灣 2026 T2DM 指引建議此族群即可接種 RZV。30-44 歲 DM 患者 HZ 風險 RR 高達 3.7。`);
+    if (patient.isImmunocompromised()) tips.push('Shingrix 為非活疫苗，免疫抑制者可安全接種。');
+  }
+
+  if (vaccineKey === 'RSV') {
+    tips.push(`DM 患者 RSV 肺炎風險為一般人的 2.7 倍。`);
+    if (patient.usesInsulinOrSGLT2i()) tips.push(`病人使用${treat}，符合 ACIP 50-74 歲 RSV 高風險條件（藥物嚴重度指標）。`);
+    if (patient.hasDMComplications()) tips.push('合併 DM 末端器官損傷，為 RSV 接種的獨立適應條件。');
+    tips.push('建議優先選用<strong>佐劑型 Arexvy</strong>（VE 82.6%，高風險亞群 100%），保護力優於非佐劑型 Abrysvo（VE 65.1%）。');
+  }
+
+  if (vaccineKey === 'Tdap') {
+    tips.push(`病人使用${treat}治療。`);
+    if (patient.hasComorbidity('neuropathy')) tips.push('合併<strong>神經病變</strong>，足部感覺減退增加傷口風險，維持破傷風免疫保護格外重要。');
+    if (patient.pregnancy) tips.push('孕婦每次懷孕 <strong>27-36 週</strong>建議接種 1 劑 Tdap。');
+  }
+
+  if (vaccineKey === 'HPV') {
+    if (a <= 26) tips.push(`病人 ${a} 歲（≤26），為 HPV 常規建議接種年齡。`);
+    else tips.push(`病人 ${a} 歲（27-45），為 SCDM。疫苗對未曾暴露的 HPV 型別仍有保護力，效益隨年齡遞減。`);
+  }
+
+  if (!tips.length) return '';
+  return `<div style="background:#f0f7ff;border-radius:8px;padding:12px;margin-bottom:10px;border-left:3px solid var(--primary);">
+    <strong style="color:var(--primary);">👤 此病人的個別化建議</strong>
+    ${tips.map(t => `<p style="margin:6px 0 0;font-size:13px;line-height:1.5;">${t}</p>`).join('')}
+  </div>`;
+}
+
 function renderResults(patient, recs) {
   $results.style.display = 'block';
   $vaccineCount.textContent = recs.filter(r => !r.isWarning).length;
@@ -1640,7 +1716,8 @@ function renderResults(patient, recs) {
 
     const detailKey = Object.keys(VACCINE_DETAILS).find(k => r.name.includes(k));
     const detailHTML = detailKey ? VACCINE_DETAILS[detailKey] : '';
-    const hasDetail = !!detailHTML;
+    const personalAdvice = detailKey ? getPersonalizedAdvice(patient, detailKey) : '';
+    const hasDetail = !!(detailHTML || personalAdvice);
     const filteredNotes = r.notes ? r.notes.filter(Boolean) : [];
 
     card.innerHTML = `
@@ -1656,7 +1733,7 @@ function renderResults(patient, recs) {
         ${filteredNotes.map(n => `<div class="note">📌 ${glossarize(n)}</div>`).join('')}
         ${r.contraindications ? r.contraindications.map(c => `<div class="contraindication">⛔ ${glossarize(c)}</div>`).join('') : ''}
       </div>
-      ${hasDetail ? `<div class="expand-hint" onclick="toggleCard(this.previousElementSibling.previousElementSibling)">點擊展開完整說明 ▼</div><div class="vaccine-card-detail">${glossarize(detailHTML)}</div>` : ''}
+      ${hasDetail ? `<div class="expand-hint" onclick="toggleCard(this.previousElementSibling.previousElementSibling)">點擊展開完整說明 ▼</div><div class="vaccine-card-detail">${personalAdvice}${glossarize(detailHTML)}</div>` : ''}
     `;
     frag.appendChild(card);
   });
