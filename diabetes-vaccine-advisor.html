@@ -7,51 +7,64 @@
 <title>糖尿病疫苗接種建議系統 | DM Vaccine Advisor</title>
 <style>
 :root {
-  --primary: #1a73e8;
-  --primary-light: #e8f0fe;
-  --success: #1e8e3e;
-  --success-light: #e6f4ea;
-  --warning: #f9ab00;
+  /* Stripe-inspired palette */
+  --primary: #533afd;
+  --primary-hover: #4434d4;
+  --primary-light: #ededfe;
+  --heading: #061b31;
+  --success: #15be53;
+  --success-text: #108c3d;
+  --success-light: rgba(21,190,83,0.12);
+  --warning: #9b6829;
   --warning-light: #fef7e0;
   --danger: #d93025;
   --danger-light: #fce8e6;
-  --info: #5f6368;
-  --bg: #f8f9fa;
+  --info: #64748d;
+  --bg: #f6f9fc;
   --card: #ffffff;
-  --border: #dadce0;
-  --text: #202124;
-  --text-secondary: #5f6368;
-  --radius: 12px;
-  --shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
-  --shadow-lg: 0 4px 12px rgba(0,0,0,0.15);
+  --border: #e5edf5;
+  --text: #061b31;
+  --text-secondary: #64748d;
+  --label: #273951;
+  --radius: 6px;
+  --radius-sm: 4px;
+  /* Stripe blue-tinted shadows */
+  --shadow: rgba(50,50,93,0.12) 0px 6px 12px -2px, rgba(0,0,0,0.06) 0px 3px 7px -3px;
+  --shadow-lg: rgba(50,50,93,0.25) 0px 30px 45px -30px, rgba(0,0,0,0.1) 0px 18px 36px -18px;
+  --shadow-sm: rgba(23,23,23,0.06) 0px 3px 6px;
   --z-sticky: 10;
   --z-overlay: 20;
-  --focus-ring: 0 0 0 2px var(--primary-light), 0 0 0 4px var(--primary);
+  --focus-ring: 0 0 0 2px #d6d9fc, 0 0 0 4px var(--primary);
+  /* Priority colors */
+  --conditional: #1a8a8a;
+  --discuss: #7b61c4;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.6;
+  font-weight: 300;
+  line-height: 1.5;
   min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Header */
+/* Header — Stripe dark brand section */
 .header {
-  background: var(--primary);
+  background: #1c1e54;
   color: white;
   padding: 20px 24px;
   padding-top: calc(20px + env(safe-area-inset-top, 0px));
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
-  box-shadow: var(--shadow-lg);
+  box-shadow: rgba(0,55,112,0.08) 0px 1px 0px;
 }
-.header h1 { font-size: 20px; font-weight: 500; text-wrap: balance; }
-.header .subtitle { font-size: 13px; opacity: 0.85; margin-top: 2px; }
+.header h1 { font-size: 22px; font-weight: 300; letter-spacing: -0.4px; text-wrap: balance; }
+.header .subtitle { font-size: 13px; opacity: 0.7; margin-top: 3px; font-weight: 300; }
 
 /* Container */
 .container {
@@ -70,23 +83,25 @@ body {
 }
 .card-title {
   font-size: 16px;
-  font-weight: 500;
-  color: var(--primary);
+  font-weight: 400;
+  color: var(--heading);
   margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
   text-wrap: balance;
+  letter-spacing: -0.2px;
 }
 .card-title .icon {
   width: 24px;
   height: 24px;
   background: var(--primary-light);
-  border-radius: 50%;
+  color: var(--primary);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 13px;
   flex-shrink: 0;
 }
 
@@ -99,8 +114,8 @@ body {
 label {
   display: block;
   font-size: 14px;
-  font-weight: 500;
-  color: var(--text);
+  font-weight: 400;
+  color: var(--label);
   margin-bottom: 6px;
 }
 label .hint {
@@ -113,17 +128,19 @@ input[type="number"], select {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: 15px;
+  font-weight: 300;
   font-family: inherit;
   background: white;
+  color: var(--text);
   transition: border-color 0.2s;
   -webkit-appearance: none;
 }
 input[type="number"]:focus, select:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(83,58,253,0.1);
 }
 
 /* Checkbox group */
@@ -142,13 +159,14 @@ input[type="number"]:focus, select:focus {
   gap: 8px;
   padding: 8px 10px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background-color 0.15s, border-color 0.15s;
   font-size: 14px;
+  font-weight: 300;
   user-select: none;
 }
-.checkbox-item:hover { background: var(--primary-light); border-color: var(--primary); }
+.checkbox-item:hover { background: var(--primary-light); border-color: #b9b9f9; }
 .checkbox-item.checked { background: var(--primary-light); border-color: var(--primary); }
 .checkbox-item input[type="checkbox"] {
   width: 18px;
@@ -183,37 +201,38 @@ input[type="number"]:focus, select:focus {
 .btn-primary {
   display: block;
   width: 100%;
-  padding: 14px;
+  padding: 12px;
   background: var(--primary);
   color: white;
   border: none;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 400;
   font-family: inherit;
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
-  box-shadow: var(--shadow);
+  transition: background-color 0.15s;
+  box-shadow: var(--shadow-sm);
 }
-.btn-primary:hover { background: #1557b0; }
+.btn-primary:hover { background: var(--primary-hover); }
 .btn-primary:active { transform: scale(0.99); }
-.btn-primary:disabled { background: #aaa; cursor: not-allowed; }
+.btn-primary:disabled { background: #c0c0c0; cursor: not-allowed; }
 
 .btn-outline {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: white;
+  background: transparent;
   color: var(--primary);
-  border: 1px solid var(--primary);
-  border-radius: 8px;
+  border: 1px solid #b9b9f9;
+  border-radius: var(--radius-sm);
   font-size: 14px;
+  font-weight: 400;
   font-family: inherit;
   cursor: pointer;
   transition: background-color 0.15s;
 }
-.btn-outline:hover { background: var(--primary-light); }
+.btn-outline:hover { background: rgba(83,58,253,0.05); }
 
 /* Focus-visible for all interactive elements */
 button:focus-visible, select:focus-visible, input:focus-visible {
@@ -232,11 +251,12 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 
 /* Highlight for preferred vaccine */
 .preferred {
-  color: #0d47a1;
-  font-weight: 600;
-  background: #e3f2fd;
-  padding: 1px 5px;
-  border-radius: 4px;
+  color: var(--primary);
+  font-weight: 400;
+  background: var(--primary-light);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid #d6d9fc;
 }
 
 /* Results */
@@ -280,10 +300,12 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 }
 .vaccine-card-header h3 {
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 400;
+  color: var(--heading);
   display: flex;
   align-items: center;
   gap: 8px;
+  letter-spacing: -0.15px;
 }
 .vaccine-card-header .expand-icon {
   font-size: 12px;
@@ -294,16 +316,17 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 }
 .vaccine-card.expanded .expand-icon { transform: rotate(180deg); }
 .priority-badge {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-weight: 500;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  font-weight: 400;
+  letter-spacing: 0.2px;
 }
-.priority-badge.high { background: var(--danger-light); color: var(--danger); }
-.priority-badge.medium { background: var(--warning-light); color: #e37400; }
-.priority-badge.conditional { background: #e0f5f5; color: #1a8a8a; }
-.priority-badge.discuss { background: #f0ebfa; color: #7b61c4; }
-.priority-badge.info { background: #e8eaed; color: var(--info); }
+.priority-badge.high { background: var(--danger-light); color: var(--danger); border: 1px solid rgba(217,48,37,0.2); }
+.priority-badge.medium { background: var(--warning-light); color: var(--warning); border: 1px solid rgba(155,104,41,0.2); }
+.priority-badge.conditional { background: #e0f5f5; color: var(--conditional); border: 1px solid rgba(26,138,138,0.2); }
+.priority-badge.discuss { background: #f0ebfa; color: var(--discuss); border: 1px solid rgba(123,97,196,0.2); }
+.priority-badge.info { background: #f1f3f5; color: var(--info); border: 1px solid rgba(100,116,141,0.15); }
 
 .vaccine-card-body {
   padding: 0 16px 14px;
@@ -349,12 +372,13 @@ button:focus-visible, select:focus-visible, input:focus-visible {
   z-index: var(--z-overlay);
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
-  padding: 10px 14px;
-  max-width: 320px;
+  padding: 12px 16px;
+  max-width: 340px;
   font-size: 13px;
-  line-height: 1.5;
+  font-weight: 300;
+  line-height: 1.55;
   color: var(--text);
 }
 .glossary-popup.visible { display: block; }
@@ -370,29 +394,32 @@ button:focus-visible, select:focus-visible, input:focus-visible {
   margin-bottom: 6px;
 }
 .vaccine-card-body .detail-label {
-  font-weight: 500;
-  color: var(--text);
+  font-weight: 400;
+  color: var(--label);
   min-width: 80px;
   flex-shrink: 0;
 }
 .vaccine-card-body .schedule-box {
   background: var(--primary-light);
-  border-radius: 8px;
+  border: 1px solid #d6d9fc;
+  border-radius: var(--radius-sm);
   padding: 10px 12px;
   margin-top: 8px;
   font-size: 13px;
 }
 .vaccine-card-body .note {
   background: var(--warning-light);
-  border-radius: 8px;
+  border: 1px solid rgba(155,104,41,0.15);
+  border-radius: var(--radius-sm);
   padding: 8px 12px;
   margin-top: 8px;
   font-size: 13px;
-  color: #e37400;
+  color: var(--warning);
 }
 .vaccine-card-body .contraindication {
   background: var(--danger-light);
-  border-radius: 8px;
+  border: 1px solid rgba(217,48,37,0.15);
+  border-radius: var(--radius-sm);
   padding: 8px 12px;
   margin-top: 8px;
   font-size: 13px;
@@ -434,9 +461,10 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 .timeline-item.completed::before { background: var(--success); box-shadow: 0 0 0 2px var(--success); }
 .timeline-item .time-label {
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--primary);
   margin-bottom: 2px;
+  letter-spacing: 0.2px;
 }
 .timeline-item .time-content {
   font-size: 14px;
@@ -444,14 +472,14 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 
 /* Disclaimer */
 .disclaimer {
-  background: var(--warning-light);
-  border: 1px solid #fdd663;
+  background: #fafbfd;
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 12px 16px;
+  padding: 14px 16px;
   font-size: 12px;
-  color: #e37400;
+  color: var(--text-secondary);
   margin-top: 16px;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* Print */
@@ -481,18 +509,19 @@ button:focus-visible, select:focus-visible, input:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 7px 14px;
   background: white;
-  color: var(--text);
+  color: var(--label);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: var(--radius-sm);
   font-size: 13px;
+  font-weight: 400;
   font-family: inherit;
   cursor: pointer;
   transition: background-color 0.15s, border-color 0.15s, color 0.15s;
   white-space: nowrap;
 }
-.preset-btn:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+.preset-btn:hover { background: var(--primary-light); border-color: #b9b9f9; color: var(--primary); }
 .preset-btn .preset-icon { font-size: 15px; }
 
 /* Animations — compositor-only (opacity + transform) */
@@ -510,9 +539,12 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 /* Footer */
 .footer {
   text-align: center;
-  padding: 24px 16px;
+  padding: 32px 16px;
   font-size: 12px;
+  font-weight: 300;
   color: var(--text-secondary);
+  border-top: 1px solid var(--border);
+  margin-top: 16px;
 }
 </style>
 </head>
@@ -1063,7 +1095,7 @@ const VACCINE_DETAILS = {
 };
 
 // ===== VERSION =====
-const APP_VERSION = 'v3.2.1';
+const APP_VERSION = 'v4.0.0';
 document.title = `糖尿病疫苗接種建議系統 | DM Vaccine Advisor ${APP_VERSION}`;
 
 // ===== CACHED DOM REFERENCES =====
