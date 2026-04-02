@@ -265,6 +265,7 @@ button:focus-visible, select:focus-visible, input:focus-visible {
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
+  user-select: none;
 }
 .vaccine-card-header h3 {
   font-size: 15px;
@@ -273,6 +274,14 @@ button:focus-visible, select:focus-visible, input:focus-visible {
   align-items: center;
   gap: 8px;
 }
+.vaccine-card-header .expand-icon {
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: transform 0.15s;
+  margin-left: 4px;
+  flex-shrink: 0;
+}
+.vaccine-card.expanded .expand-icon { transform: rotate(180deg); }
 .priority-badge {
   font-size: 11px;
   padding: 2px 8px;
@@ -289,6 +298,60 @@ button:focus-visible, select:focus-visible, input:focus-visible {
   font-size: 14px;
   color: var(--text-secondary);
 }
+.vaccine-card-detail {
+  display: none;
+  padding: 0 16px 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  border-top: 1px dashed var(--border);
+  margin-top: 2px;
+}
+.vaccine-card.expanded .vaccine-card-detail { display: block; }
+.vaccine-card-detail h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 10px 0 4px;
+}
+.vaccine-card-detail h4:first-child { margin-top: 12px; }
+.vaccine-card-detail p { margin: 0 0 6px; line-height: 1.55; }
+.vaccine-card-detail ul { margin: 0 0 6px; padding-left: 18px; }
+.vaccine-card-detail li { margin-bottom: 3px; }
+.expand-hint {
+  font-size: 12px;
+  color: var(--primary);
+  padding: 0 16px 10px;
+  cursor: pointer;
+}
+
+/* Glossary tooltip */
+.glossary-term {
+  border-bottom: 1px dotted var(--primary);
+  cursor: help;
+  position: relative;
+  white-space: nowrap;
+}
+.glossary-popup {
+  display: none;
+  position: fixed;
+  z-index: var(--z-overlay);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  padding: 10px 14px;
+  max-width: 320px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+}
+.glossary-popup.visible { display: block; }
+.glossary-popup .gp-term {
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+.glossary-popup .gp-body { color: var(--text-secondary); }
 .vaccine-card-body .detail-row {
   display: flex;
   gap: 8px;
@@ -663,12 +726,222 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 
 </div>
 
+<div class="glossary-popup" id="glossaryPopup">
+  <div class="gp-term" id="gpTerm"></div>
+  <div class="gp-body" id="gpBody"></div>
+</div>
+
 <div class="footer no-print">
   DM Vaccine Advisor v2.0 | CDC/ACIP 2025-2026 Guidelines<br>
   Designed for healthcare professionals
 </div>
 
 <script>
+// ===== GLOSSARY =====
+const GLOSSARY = {
+  'IIV3': { full: 'Inactivated Influenza Vaccine (trivalent)', desc: '三價不活化流感疫苗，以注射方式接種。適用於所有年齡層，包括孕婦及免疫抑制者。' },
+  'HD-IIV3': { full: 'High-Dose Inactivated Influenza Vaccine', desc: '高劑量三價不活化流感疫苗（如 Fluzone HD），抗原含量為標準劑量的 4 倍，65 歲以上優先推薦。' },
+  'RIV3': { full: 'Recombinant Influenza Vaccine (trivalent)', desc: '三價重組流感疫苗（如 Flublok），以重組蛋白技術製造，不含雞蛋成分，65 歲以上優先推薦選項之一。' },
+  'aIIV3': { full: 'Adjuvanted Inactivated Influenza Vaccine', desc: '佐劑三價不活化流感疫苗（如 Fluad），添加 MF59 佐劑增強免疫反應，65 歲以上優先推薦選項之一。' },
+  'LAIV3': { full: 'Live Attenuated Influenza Vaccine (nasal spray)', desc: '三價減毒活流感疫苗（鼻噴式，如 FluMist）。糖尿病患者列為 precaution（非絕對禁忌，但建議優先選用不活化疫苗）。免疫抑制者及孕婦禁用。' },
+  'PCV20': { full: 'Pneumococcal Conjugate Vaccine (20-valent)', desc: '20 價肺炎鏈球菌結合型疫苗（Prevnar 20），涵蓋 20 種血清型，單劑即可完成接種。' },
+  'PCV21': { full: 'Pneumococcal Conjugate Vaccine (21-valent)', desc: '21 價肺炎鏈球菌結合型疫苗，涵蓋 21 種血清型但缺少 serotype 4。若當地 serotype 4 盛行率高，PCV20 覆蓋更全面。' },
+  'PCV15': { full: 'Pneumococcal Conjugate Vaccine (15-valent)', desc: '15 價肺炎鏈球菌結合型疫苗（Vaxneuvance），接種後需追加 PPSV23 以獲得更廣泛的血清型保護。' },
+  'PPSV23': { full: 'Pneumococcal Polysaccharide Vaccine (23-valent)', desc: '23 價肺炎鏈球菌多醣體疫苗（Pneumovax 23），涵蓋 23 種血清型。常與 PCV15 搭配使用。' },
+  'PCV13': { full: 'Pneumococcal Conjugate Vaccine (13-valent)', desc: '13 價肺炎鏈球菌結合型疫苗（Prevnar 13），已被 PCV20/PCV21 取代為優先選項。' },
+  'Heplisav-B': { full: 'Heplisav-B (HepB-CpG)', desc: 'B 型肝炎重組疫苗，含 CpG 佐劑。僅需 2 劑（0、4 週），免疫原性優於傳統 3 劑疫苗。18 歲以上適用。' },
+  'PreHevbrio': { full: 'PreHevbrio (HepB 3-antigen)', desc: 'B 型肝炎三抗原重組疫苗，3 劑系列（0、1、6 月）。注意：孕婦不建議使用（缺乏安全性資料）。' },
+  'Engerix-B': { full: 'Engerix-B (HepB recombinant)', desc: 'B 型肝炎基因重組疫苗，傳統 3 劑系列（0、1、6 月）。透析患者需使用特殊劑量。' },
+  'Recombivax HB': { full: 'Recombivax HB', desc: 'B 型肝炎基因重組疫苗，3 劑系列。透析患者使用 40 mcg 劑型。' },
+  'RZV': { full: 'Recombinant Zoster Vaccine', desc: '重組帶狀疱疹疫苗（Shingrix），含 AS01B 佐劑。非活疫苗，免疫抑制者也可接種。2 劑系列，間隔 2-6 個月。' },
+  'Shingrix': { full: 'Shingrix (RZV)', desc: '重組帶狀疱疹疫苗，疫苗效力約 97%（50-69 歲）及 91%（≥70 歲），保護力可持續至少 10 年。' },
+  'Tdap': { full: 'Tetanus, Diphtheria, Pertussis (acellular)', desc: '破傷風、白喉、非細胞性百日咳混合疫苗。成人追加用。每次懷孕 27-36 週建議接種 1 劑。' },
+  'SCDM': { full: 'Shared Clinical Decision-Making', desc: '共同臨床決策：由醫師與病人共同討論疫苗的風險效益後決定是否接種。不同於「常規建議」，SCDM 代表接種並非自動適用所有人，而需個別評估。' },
+  'DKA': { full: 'Diabetic Ketoacidosis', desc: '糖尿病酮酸中毒，為糖尿病嚴重急性併發症，常因感染（如流感）誘發。' },
+  'SGLT2i': { full: 'Sodium-Glucose Co-Transporter 2 Inhibitor', desc: 'SGLT2 抑制劑（如 empagliflozin、dapagliflozin），除降血糖外還具有心腎保護作用。使用 SGLT2i 被 ACIP 視為 DM 嚴重度的替代指標之一。' },
+  'serotype 4': { full: 'Pneumococcal Serotype 4', desc: '肺炎鏈球菌血清型 4，在某些地區是造成侵襲性肺炎鏈球菌疾病的重要型別。PCV21 不含此型別，這是選擇 PCV20 的考量之一。' },
+  'Arexvy': { full: 'Arexvy (GSK RSV vaccine)', desc: 'GSK 的 RSV 蛋白次單位疫苗，單劑接種。適用於 60 歲以上成人（2025 年 6 月擴展至 50 歲以上高風險者）。' },
+  'Abrysvo': { full: 'Abrysvo (Pfizer RSV vaccine)', desc: 'Pfizer 的 RSV 蛋白次單位疫苗，單劑接種。也核准用於孕婦（32-36 週）以保護新生兒。' },
+  'mResvia': { full: 'mResvia (Moderna RSV vaccine)', desc: 'Moderna 的 mRNA RSV 疫苗，單劑接種。為首個 mRNA 技術的 RSV 疫苗。' },
+  '9vHPV': { full: '9-valent HPV vaccine', desc: '九價人類乳突病毒疫苗（Gardasil 9），涵蓋 HPV 6/11/16/18/31/33/45/52/58 型，可預防子宮頸癌、肛門癌及生殖器疣等。' },
+  'precaution': { full: 'Precaution (vaccination term)', desc: '接種注意事項：指可能增加不良反應風險或降低疫苗效力的狀況，但並非絕對禁忌。在 precaution 下仍可接種，需由臨床醫師個別評估。' },
+  'Spikevax': { full: 'Moderna Spikevax', desc: 'Moderna 的 mRNA COVID-19 疫苗。2025-2026 配方針對最新流行株更新。' },
+  'mNexspike': { full: 'Moderna mNexspike', desc: 'Moderna 的新一代 mRNA COVID-19 疫苗，與其他品牌的最短接種間隔為 3 個月（較長）。' },
+  'Comirnaty': { full: 'Pfizer-BioNTech Comirnaty', desc: 'Pfizer 的 mRNA COVID-19 疫苗。2025-2026 配方針對最新流行株更新。' },
+  'Nuvaxovid': { full: 'Novavax Nuvaxovid', desc: 'Novavax 的蛋白次單位 COVID-19 疫苗，非 mRNA 技術，適合偏好非 mRNA 疫苗的接種者。' },
+  'MenACWY': { full: 'Meningococcal Conjugate Vaccine (ACWY)', desc: '腦膜炎雙球菌四價結合型疫苗，涵蓋 A、C、W、Y 血清群。無脾者及 HIV 感染者為高風險適應症。' },
+  'Twinrix': { full: 'Twinrix (HepA + HepB combined)', desc: 'A 型肝炎 + B 型肝炎混合疫苗，3 劑系列（0、1、6 月），或加速 4 劑系列（0、7 天、21-30 天、12 月）。' },
+};
+
+// ===== DETAILED DESCRIPTIONS FOR EACH VACCINE =====
+const VACCINE_DETAILS = {
+  'Influenza': `
+    <h4>為什麼糖尿病患者需要流感疫苗？</h4>
+    <p>流感感染會導致應激性高血糖（stress hyperglycemia），使血糖控制急遽惡化。DM 患者感染流感後發生 DKA、肺炎、住院及死亡的風險均顯著高於一般人。</p>
+    <h4>疫苗選擇說明</h4>
+    <ul>
+      <li><strong>65 歲以上：</strong>優先選用 HD-IIV3（高劑量）、aIIV3（佐劑）或 RIV3（重組），免疫反應優於標準劑量</li>
+      <li><strong>一般成人：</strong>IIV3（不活化注射）或 RIV3 皆可</li>
+      <li><strong>LAIV3（鼻噴）：</strong>DM 列為 precaution — 並非絕對禁忌，但臨床上建議優先使用不活化疫苗</li>
+    </ul>
+    <h4>接種時機</h4>
+    <p>每年 9-10 月為最佳接種時機（流感季前）。流感季期間（通常至隔年 3-4 月）隨時可補接種。</p>
+    <h4>禁忌症</h4>
+    <ul>
+      <li>對前一劑同類疫苗或疫苗成分有嚴重過敏反應（anaphylaxis）</li>
+      <li>LAIV3 另外禁用於：免疫抑制、懷孕、無脾、人工耳蝸、CSF leak</li>
+    </ul>`,
+
+  'Pneumococcal': `
+    <h4>為什麼糖尿病患者需要肺炎鏈球菌疫苗？</h4>
+    <p>DM 被歸類為肺炎鏈球菌感染的「慢性醫學狀況」風險群（與慢性心臟病、肺病、肝病同級），感染後發生侵襲性肺炎鏈球菌疾病（IPD）的風險顯著升高。</p>
+    <h4>疫苗選擇流程</h4>
+    <ul>
+      <li><strong>從未接種：</strong>首選 PCV20 或 PCV21（單劑完成）；或 PCV15 + 之後追加 PPSV23</li>
+      <li><strong>PCV15 + PPSV23 間隔：</strong>一般慢性病（含 DM）≥ 1 年；免疫抑制者最短 8 週</li>
+      <li><strong>PCV21 注意：</strong>缺少 serotype 4，若當地盛行率高應改選 PCV20</li>
+    </ul>
+    <h4>年齡分層</h4>
+    <ul>
+      <li><strong>19-49 歲 DM：</strong>risk-based indication（因 DM 而建議）</li>
+      <li><strong>≥ 50 歲：</strong>2024 年起為 universal recommendation（不論有無 DM）</li>
+    </ul>
+    <h4>禁忌症</h4>
+    <p>對前一劑或疫苗成分嚴重過敏；對白喉類毒素疫苗嚴重過敏（PCV15/20/21 含白喉蛋白載體）。</p>`,
+
+  'Hepatitis B': `
+    <h4>為什麼糖尿病患者需要 B 肝疫苗？</h4>
+    <p>DM 患者因頻繁的血糖監測（fingerstick）及胰島素注射，有較高的經皮暴露風險。2011 年曾發生長照機構因共用血糖監測設備導致 HBV 群聚感染事件，促使 ACIP 將 DM 納入 HepB 適應症。</p>
+    <h4>疫苗選擇說明</h4>
+    <ul>
+      <li><strong>Heplisav-B：</strong>僅需 2 劑（0、4 週），免疫原性優於傳統疫苗，為方便性首選</li>
+      <li><strong>Engerix-B / Recombivax HB：</strong>傳統 3 劑系列（0、1、6 月）</li>
+      <li><strong>PreHevbrio：</strong>三抗原疫苗，3 劑。<strong>孕婦不建議使用</strong></li>
+      <li><strong>透析患者：</strong>需使用特殊高劑量（Recombivax HB 40 mcg 或 Engerix-B 雙倍劑量）</li>
+    </ul>
+    <h4>年齡建議差異</h4>
+    <ul>
+      <li><strong>19-59 歲：</strong>2022 年起為 universal recommendation（所有成人皆建議）</li>
+      <li><strong>≥ 60 歲：</strong>SCDM（共同臨床決策）— DM 為考量因素之一。若病人主動要求，即應給予</li>
+    </ul>
+    <h4>禁忌症</h4>
+    <p>對前一劑或疫苗成分（含酵母）嚴重過敏。PreHevbrio 於孕期禁用。</p>`,
+
+  'COVID-19': `
+    <h4>為什麼糖尿病患者需要 COVID-19 疫苗？</h4>
+    <p>DM（T1 及 T2）為 COVID-19 重症的獨立危險因子。研究顯示 DM 患者住院風險增加 6 倍、死亡風險增加 12 倍。住院患者中約 39.7% 合併 DM。</p>
+    <h4>2025-2026 疫苗選項</h4>
+    <ul>
+      <li><strong>Moderna Spikevax：</strong>mRNA 疫苗，6 個月以上適用</li>
+      <li><strong>Moderna mNexspike：</strong>新一代 mRNA，12 歲以上。注意最短間隔為 3 個月</li>
+      <li><strong>Pfizer Comirnaty：</strong>mRNA 疫苗，5 歲以上適用</li>
+      <li><strong>Novavax Nuvaxovid：</strong>蛋白次單位疫苗（非 mRNA），12 歲以上</li>
+    </ul>
+    <h4>劑量建議</h4>
+    <ul>
+      <li><strong>12-64 歲：</strong>SCDM — DM 患者風險效益比佳，建議接種 1 劑</li>
+      <li><strong>≥ 65 歲：</strong>建議 2 劑，間隔 6 個月（最短 2 個月）</li>
+      <li><strong>免疫抑制：</strong>建議 2 劑</li>
+    </ul>
+    <h4>禁忌症</h4>
+    <p>對前一劑或疫苗成分嚴重過敏。注意事項：3 週內有心肌炎/心包膜炎病史、MIS-C/MIS-A 病史。</p>`,
+
+  'Zoster': `
+    <h4>為什麼要接種帶狀疱疹疫苗？</h4>
+    <p>帶狀疱疹由水痘-帶狀疱疹病毒（VZV）再活化引起，DM 患者因免疫功能微幅下降，帶狀疱疹風險可能升高。帶狀疱疹後神經痛（PHN）可持續數月至數年。</p>
+    <h4>Shingrix 說明</h4>
+    <ul>
+      <li><strong>技術：</strong>重組蛋白 + AS01B 佐劑，非活疫苗</li>
+      <li><strong>效力：</strong>50-69 歲約 97%，≥70 歲約 91%</li>
+      <li><strong>保護力：</strong>至少維持 10 年</li>
+      <li><strong>免疫抑制者可接種：</strong>因為非活疫苗</li>
+    </ul>
+    <h4>接種時機</h4>
+    <ul>
+      <li><strong>≥ 50 歲：</strong>所有成人常規建議（不論有無 DM）</li>
+      <li><strong>19-49 歲免疫抑制：</strong>亦建議接種</li>
+      <li>曾打過舊型 Zostavax（ZVL）：仍需重新接種 Shingrix 2 劑</li>
+      <li>曾得過帶狀疱疹：仍建議接種</li>
+    </ul>
+    <h4>禁忌症</h4>
+    <p>對前一劑或疫苗成分嚴重過敏。注意事項：活動性帶狀疱疹發作時應延後接種。</p>`,
+
+  'Tdap': `
+    <h4>為什麼糖尿病患者要特別注意破傷風疫苗？</h4>
+    <p>DM 患者常合併周邊神經病變，導致足部感覺減退、傷口不易察覺，加上高血糖環境不利傷口癒合，足部潰瘍及深部組織感染風險高，因此維持破傷風免疫保護格外重要。</p>
+    <h4>接種建議</h4>
+    <ul>
+      <li><strong>從未打過 Tdap：</strong>立即接種 1 劑 Tdap，之後每 10 年追加 Td 或 Tdap</li>
+      <li><strong>超過 10 年：</strong>追加 1 劑 Td 或 Tdap</li>
+      <li><strong>從未完成基礎系列：</strong>需完成 3 劑（Tdap + 2 劑 Td）</li>
+      <li><strong>孕婦：</strong>每次懷孕 27-36 週接種 1 劑 Tdap</li>
+    </ul>
+    <h4>傷口處置</h4>
+    <ul>
+      <li>乾淨小傷口：距上次 > 10 年才需補打</li>
+      <li>髒污/嚴重傷口：距上次 > 5 年即需補打</li>
+    </ul>
+    <h4>禁忌症</h4>
+    <p>對前一劑嚴重過敏；接種 DTP/DTaP/Tdap 後 7 天內發生腦病變。注意事項：6 週內曾發生 GBS。</p>`,
+
+  'RSV': `
+    <h4>為什麼糖尿病患者需要 RSV 疫苗？</h4>
+    <p>RSV 是成人嚴重下呼吸道感染的重要病因，尤其在老年人及慢性病族群。DM 合併其他風險因子時，RSV 住院及重症風險升高。</p>
+    <h4>DM 患者的特殊適應條件（50-74 歲）</h4>
+    <p>並非所有 DM 患者都符合 50-74 歲的 RSV 接種條件，必須符合以下至少一項：</p>
+    <ul>
+      <li>DM 合併末端器官損傷（CKD、神經病變、視網膜病變）</li>
+      <li>DM 需使用胰島素或 SGLT2i 治療</li>
+      <li>合併其他獨立高風險條件（CVD、慢性肺病、肥胖 BMI≥40、免疫抑制、透析）</li>
+    </ul>
+    <p><strong>僅使用飲食控制、metformin 或一般口服藥的 DM 患者不符合 50-74 歲適應條件。</strong></p>
+    <h4>疫苗選項</h4>
+    <ul>
+      <li><strong>Arexvy（GSK）：</strong>蛋白次單位</li>
+      <li><strong>Abrysvo（Pfizer）：</strong>蛋白次單位</li>
+      <li><strong>mResvia（Moderna）：</strong>mRNA 技術</li>
+    </ul>
+    <p>三者無品牌優先差異。單劑接種，非每年。</p>
+    <h4>禁忌症</h4>
+    <p>對疫苗成分嚴重過敏。與其他疫苗同時接種可能降低抗體效價及增加副作用。</p>`,
+
+  'HPV': `
+    <h4>HPV 疫苗說明</h4>
+    <p>HPV 疫苗可預防由人類乳突病毒引起的子宮頸癌、肛門癌、口咽癌及生殖器疣等。DM 本身不是 HPV 的特殊適應症，但 DM 患者免疫力可能微幅下降，接種疫苗仍具保護意義。</p>
+    <h4>年齡建議</h4>
+    <ul>
+      <li><strong>≤ 26 歲：</strong>常規建議（routine）</li>
+      <li><strong>27-45 歲：</strong>SCDM — 效益隨年齡遞減，對未曾暴露的 HPV 型別仍有保護力</li>
+      <li><strong>> 45 歲：</strong>不建議接種</li>
+    </ul>
+    <h4>劑量</h4>
+    <ul>
+      <li><strong>9-14 歲首劑：</strong>2 劑（0、6-12 月），間隔需 ≥ 5 個月</li>
+      <li><strong>15 歲以上首劑：</strong>3 劑（0、1-2 月、6 月）</li>
+      <li><strong>免疫抑制者：</strong>不論年齡皆 3 劑</li>
+    </ul>
+    <h4>禁忌症</h4>
+    <p>對前一劑或疫苗成分嚴重過敏。孕婦不建議接種（產後再接種）。</p>`,
+
+  'Hepatitis A': `
+    <h4>A 型肝炎疫苗說明</h4>
+    <p>DM 本身不是 A 肝疫苗的單獨適應症，但合併慢性肝病（CLD）時建議接種。A 肝感染在慢性肝病患者可能導致急性肝衰竭。</p>
+    <h4>劑量</h4>
+    <ul>
+      <li>HepA 單一抗原：2 劑（0、6-12 月）</li>
+      <li>Twinrix（HepA+HepB 混合）：3 劑（0、1、6 月）</li>
+    </ul>`,
+
+  'MenACWY': `
+    <h4>腦膜炎雙球菌疫苗說明</h4>
+    <p>DM 本身不是腦膜炎疫苗的適應症。本建議係因合併無脾或 HIV 等高風險狀況。</p>
+    <h4>劑量</h4>
+    <ul>
+      <li>2 劑基礎系列（間隔至少 8 週）</li>
+      <li>之後每 5 年追加 1 劑</li>
+    </ul>`,
+};
+
 // Checkbox toggle styling
 document.querySelectorAll('.checkbox-item').forEach(item => {
   const cb = item.querySelector('input[type="checkbox"]');
@@ -1120,19 +1393,27 @@ function renderResults(patient, recs) {
     const card = document.createElement('div');
     card.className = `vaccine-card priority-${r.priority} fade-in`;
     card.style.animationDelay = `${i * 0.05}s`;
+
+    // Find matching detail content
+    const detailKey = Object.keys(VACCINE_DETAILS).find(k => r.name.includes(k));
+    const detailHTML = detailKey ? VACCINE_DETAILS[detailKey] : '';
+    const hasDetail = !!detailHTML;
+
     card.innerHTML = `
-      <div class="vaccine-card-header">
-        <h3>${r.isWarning ? '' : '💉 '}${r.name}</h3>
+      <div class="vaccine-card-header" ${hasDetail ? 'onclick="toggleCard(this)"' : ''} role="${hasDetail ? 'button' : ''}" ${hasDetail ? 'aria-expanded="false"' : ''} tabindex="${hasDetail ? '0' : '-1'}">
+        <h3>${r.isWarning ? '' : '💉 '}${r.name}${hasDetail ? '<span class="expand-icon">▼</span>' : ''}</h3>
         <span class="priority-badge ${r.priority}">${priorityLabel[r.priority]}</span>
       </div>
       <div class="vaccine-card-body">
-        <div class="detail-row"><span class="detail-label">疫苗選擇</span><span>${r.vaccines}</span></div>
-        <div class="detail-row"><span class="detail-label">劑量</span><span>${r.doses}</span></div>
-        ${r.timing ? `<div class="detail-row"><span class="detail-label">時機</span><span>${r.timing}</span></div>` : ''}
-        <div class="schedule-box">📋 <strong>依據：</strong>${r.rationale}</div>
-        ${r.notes && r.notes.filter(n=>n).length ? r.notes.filter(n=>n).map(n => `<div class="note">📌 ${n}</div>`).join('') : ''}
-        ${r.contraindications ? r.contraindications.map(c => `<div class="contraindication">⛔ ${c}</div>`).join('') : ''}
+        <div class="detail-row"><span class="detail-label">疫苗選擇</span><span>${glossarize(r.vaccines)}</span></div>
+        <div class="detail-row"><span class="detail-label">劑量</span><span>${glossarize(r.doses)}</span></div>
+        ${r.timing ? `<div class="detail-row"><span class="detail-label">時機</span><span>${glossarize(r.timing)}</span></div>` : ''}
+        <div class="schedule-box">📋 <strong>依據：</strong>${glossarize(r.rationale)}</div>
+        ${r.notes && r.notes.filter(n=>n).length ? r.notes.filter(n=>n).map(n => `<div class="note">📌 ${glossarize(n)}</div>`).join('') : ''}
+        ${r.contraindications ? r.contraindications.map(c => `<div class="contraindication">⛔ ${glossarize(c)}</div>`).join('') : ''}
       </div>
+      ${hasDetail ? `<div class="expand-hint" onclick="toggleCard(this.previousElementSibling.previousElementSibling)">點擊展開完整說明 ▼</div>` : ''}
+      ${hasDetail ? `<div class="vaccine-card-detail">${glossarize(detailHTML)}</div>` : ''}
     `;
     listEl.appendChild(card);
   });
@@ -1226,6 +1507,73 @@ function copyText() {
     setTimeout(() => btn.textContent = '📋 複製文字 Copy', 2000);
   });
 }
+
+// ===== CARD EXPAND/COLLAPSE =====
+function toggleCard(headerEl) {
+  const card = headerEl.closest('.vaccine-card');
+  const isExpanded = card.classList.toggle('expanded');
+  headerEl.setAttribute('aria-expanded', isExpanded);
+  // Update hint text
+  const hint = card.querySelector('.expand-hint');
+  if (hint) hint.textContent = isExpanded ? '收合詳細說明 ▲' : '點擊展開完整說明 ▼';
+}
+
+// Allow keyboard (Enter/Space) to toggle
+document.addEventListener('keydown', (e) => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('vaccine-card-header')) {
+    e.preventDefault();
+    toggleCard(e.target);
+  }
+});
+
+// ===== GLOSSARY SYSTEM =====
+function glossarize(text) {
+  if (!text) return text;
+  // Sort terms by length (longest first) to avoid partial matches
+  const terms = Object.keys(GLOSSARY).sort((a, b) => b.length - a.length);
+  // Build regex: match whole terms, avoid matching inside HTML tags or already-wrapped terms
+  const escaped = terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const regex = new RegExp(`(?<![\\w/\\->])(${escaped.join('|')})(?![\\w<])`, 'g');
+  // Track which terms we've already wrapped to avoid duplicates in the same text
+  const seen = new Set();
+  return text.replace(regex, (match) => {
+    if (seen.has(match)) return match; // only annotate first occurrence per text block
+    seen.add(match);
+    return `<span class="glossary-term" data-term="${match}">${match}</span>`;
+  });
+}
+
+// Glossary popup show/hide
+const gpEl = document.getElementById('glossaryPopup');
+const gpTerm = document.getElementById('gpTerm');
+const gpBody = document.getElementById('gpBody');
+
+document.addEventListener('click', (e) => {
+  const term = e.target.closest('.glossary-term');
+  if (term) {
+    e.stopPropagation();
+    const key = term.dataset.term;
+    const entry = GLOSSARY[key];
+    if (!entry) return;
+    gpTerm.textContent = `${key} — ${entry.full}`;
+    gpBody.textContent = entry.desc;
+    gpEl.classList.add('visible');
+    // Position near the term
+    const rect = term.getBoundingClientRect();
+    const popupW = 320;
+    let left = rect.left;
+    let top = rect.bottom + 6;
+    // Keep within viewport
+    if (left + popupW > window.innerWidth - 12) left = window.innerWidth - popupW - 12;
+    if (left < 12) left = 12;
+    if (top + 200 > window.innerHeight) top = rect.top - 6 - 200; // flip above
+    if (top < 12) top = 12;
+    gpEl.style.left = left + 'px';
+    gpEl.style.top = top + 'px';
+  } else if (!e.target.closest('.glossary-popup')) {
+    gpEl.classList.remove('visible');
+  }
+});
 
 function resetForm() {
   document.getElementById('results').style.display = 'none';
