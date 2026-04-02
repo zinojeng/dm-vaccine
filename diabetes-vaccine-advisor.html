@@ -807,6 +807,11 @@ const GLOSSARY = {
   'IPD': { full: 'Invasive Pneumococcal Disease', desc: '侵襲性肺炎鏈球菌疾病，包括菌血症、腦膜炎等。DM 為獨立危險因子。台灣 IPD 高風險定義不含 DM（與 US ACIP 不同）。' },
   'eGFR': { full: 'Estimated Glomerular Filtration Rate', desc: '估算腎絲球過濾率。KDIGO 分級：G1 ≥90、G2 60-89、G3a 45-59、G3b 30-44、G4 15-29、G5 <15 mL/min/1.73m²。影響用藥選擇及疫苗劑量。' },
   'GRADE': { full: 'Grading of Recommendations Assessment, Development and Evaluation', desc: '證據評估分級系統。ACIP 及 IDSA 用於評定疫苗建議的證據品質（High/Moderate/Low/Very Low）及建議強度（Strong/Conditional）。' },
+  'FLUAD': { full: 'FLUAD (MF59-adjuvanted influenza vaccine)', desc: 'MF59 佐劑流感疫苗，65 歲以上優先推薦。PCR 陽性住院 rVE 61.6%（三種加強型疫苗中最高）。台灣 2023 年 3 月已上市。DM + ≥3 共病者效果優於 HD 疫苗。' },
+  'DANFLU-2': { full: 'Danish Influenza Vaccination Study 2', desc: '丹麥大型 RCT（N=332,438），比較 HD vs SD 流感疫苗。DM 亞群分析顯示 HD 流感住院 rVE 41.6%、心血管住院 rVE 12.0%。發表於 NEJM 及 JAMA Intern Med 2025。' },
+  'CAPiTA': { full: 'Community-Acquired Pneumonia Immunization Trial in Adults', desc: '大型 RCT 評估 PCV13 在成人社區型肺炎的效力。Post-hoc 分析發現 DM 患者 VE 高達 89.5%（非 DM 僅 24.7%），p=0.002。' },
+  'rVE': { full: 'Relative Vaccine Effectiveness', desc: '相對疫苗效力，用於比較兩種疫苗之間的效力差異。例如 aIIV3 vs SD-IIV3 的 rVE 表示佐劑疫苗相對於標準疫苗的額外保護力。' },
+  'MF59': { full: 'MF59 Squalene Adjuvant', desc: '角鯊烯水包油乳化佐劑，每劑含約 10mg 角鯊烯。1997 年首次核准用於老年流感疫苗。可提升抗體效價 1.4-1.6 倍，並增強交叉保護力。' },
 };
 
 // ===== DETAILED DESCRIPTIONS FOR EACH VACCINE =====
@@ -827,10 +832,23 @@ const VACCINE_DETAILS = {
       <li>對前一劑同類疫苗或疫苗成分有嚴重過敏反應（anaphylaxis）</li>
       <li><strong>LAIV3 禁用於 DM 患者</strong>（ADA Standards of Care 明確建議）、免疫抑制者、孕婦、無脾、人工耳蝸、CSF leak</li>
     </ul>
+    <h4>DM 亞群研究（DANFLU-2, JAMA Intern Med 2025）</h4>
+    <ul>
+      <li>HD vs SD 在 DM 亞群：流感住院 rVE <strong>41.6%</strong>（95% CI 6.5-64.7）</li>
+      <li>心血管住院 rVE <strong>12.0%</strong>（0.9-23.3）</li>
+      <li>DM 病程 &gt;5 年者，HD 疫苗預防全因住院效果更佳</li>
+    </ul>
+    <h4>65 歲以上疫苗品牌比較</h4>
+    <ul>
+      <li><strong>aIIV3（FLUAD 佐劑）：</strong>PCR 陽性住院 rVE <strong>61.6%</strong> — 三種加強型中最高（Ku 2024, CID）</li>
+      <li><strong>HD-IIV3（高劑量）：</strong>PCR 陽性住院 rVE 25.1%</li>
+      <li>DM + ≥3 共病：aIIV3 優於 HD-IIV3（rVE 10.4% vs HD, Imran 2024）</li>
+      <li>佐劑疫苗抗體持續至 <strong>1 年</strong>（標準疫苗僅 4-6 個月）</li>
+    </ul>
     <h4>免疫抑制者注意（IDSA 2025）</h4>
     <p>免疫抑制者流感 VE 約 32%（住院預防），低於一般人（42%），但仍具臨床意義。若無法等到最佳時機，應在流感季期間接種（反應減弱仍優於無保護）。</p>
     <h4>台灣指引</h4>
-    <p>台灣 CDC 明確將糖尿病列為流感疫苗高危險群，19-64 歲高風險慢性病人可獲公費流感疫苗。</p>`,
+    <p>台灣 CDC 將 DM 列為流感高危險群（公費）。<strong>台灣現況：aIIV3（FLUAD）已上市（2023.03）；HD-IIV3 尚未引進。</strong></p>`,
 
   'Pneumococcal': `
     <h4>為什麼糖尿病患者需要肺炎鏈球菌疫苗？</h4>
@@ -848,10 +866,24 @@ const VACCINE_DETAILS = {
     </ul>
     <h4>禁忌症</h4>
     <p>對前一劑或疫苗成分嚴重過敏；對白喉類毒素疫苗嚴重過敏（PCV15/20/21 含白喉蛋白載體）。</p>
-    <h4>ADA 證據</h4>
-    <p>ADA Standards of Care 引用 Kornum et al. (2008)：DM 患者肺炎鏈球菌感染住院率及死亡率均顯著升高，<strong>死亡率可達 50%</strong>。</p>
+    <h4>DM 患者風險量化（Acta Diabetol 2024, 36 studies meta-analysis）</h4>
+    <ul>
+      <li>IPD 風險：OR <strong>2.42</strong>（95% CI 2.00-2.92）</li>
+      <li>住院風險：OR <strong>2.98</strong>（95% CI 2.76-3.22）</li>
+      <li>死亡風險：調整後 OR <strong>1.75</strong>（95% CI 1.40-2.20）</li>
+    </ul>
+    <h4>CAPiTA 試驗 DM 亞群（Vaccine 2017）— 重要發現</h4>
+    <p>PCV13 在 DM 患者的 VE 為 <strong>89.5%</strong>（95% CI 65.5-96.8），顯著高於非 DM 患者的 24.7%（p=0.002）。肺炎鏈球菌疫苗在 DM 患者效果<strong>反而更好</strong>。</p>
+    <h4>PCV21 STRIDE-8 試驗（CID 2025）</h4>
+    <p>納入 DM 患者（HbA1c ≤9%）。PCV21 對 13 個共同血清型免疫反應<strong>高於</strong> PCV15+PPSV23，且耐受性良好。</p>
+    <h4>台灣血清型覆蓋率（2021-2025）</h4>
+    <ul>
+      <li><strong>PCV21 覆蓋率 67-85%</strong> vs PCV20 僅 37-47%</li>
+      <li>台灣 top 5 致死血清型：23A(20%), 15A(13%), 35(9%), 19A(9%), 23F(9%) — PCV21 涵蓋度遠高於 PCV20</li>
+      <li><strong>台灣建議：PCV21 為優先選擇</strong>（因兒童 PCV7/13 高接種率導致血清型替換）</li>
+    </ul>
     <h4>台灣差異</h4>
-    <p><strong>注意：</strong>台灣 CDC 的 IPD 高風險定義<strong>不含糖尿病</strong>（僅含無脾、免疫不全、人工耳蝸、CSF leak、惡性腫瘤/移植）。此與 US ACIP 明確將 DM 列為肺炎鏈球菌適應症不同。台灣 ≥65 歲為常規公費接種。</p>`,
+    <p><strong>注意：</strong>台灣 CDC 的 IPD 高風險定義<strong>不含糖尿病</strong>（與 US ACIP 不同）。但基於上述證據，DM 患者仍強烈建議接種。台灣 ≥65 歲為常規公費。</p>`,
 
   'Hepatitis B': `
     <h4>為什麼糖尿病患者需要 B 肝疫苗？</h4>
@@ -902,8 +934,13 @@ const VACCINE_DETAILS = {
     <p>若無法等到最佳接種時機（如移植後 3 個月），仍建議接種 — 部分保護優於無保護。</p>`,
 
   'Zoster': `
-    <h4>為什麼要接種帶狀疱疹疫苗？</h4>
-    <p>帶狀疱疹由水痘-帶狀疱疹病毒（VZV）再活化引起，DM 患者因免疫功能微幅下降，帶狀疱疹風險可能升高。帶狀疱疹後神經痛（PHN）可持續數月至數年。</p>
+    <h4>DM 患者帶狀疱疹風險量化</h4>
+    <ul>
+      <li>Kawai & Yawn 2017 (842,632 HZ cases)：RR <strong>1.30</strong> (1.17-1.45)</li>
+      <li>Mareque 2019：整體 RR <strong>2.1</strong> (1.9-2.4)；30-44 歲 DM 患者 RR <strong>3.7</strong> (2.0-6.8)</li>
+      <li>Huang 2022 (868,582 HZ cases)：RR <strong>1.38</strong> (1.21-1.57)</li>
+      <li>合併微/大血管併發症者風險<strong>進一步升高</strong></li>
+    </ul>
     <h4>Shingrix 說明</h4>
     <ul>
       <li><strong>技術：</strong>重組蛋白 + AS01B 佐劑，非活疫苗</li>
@@ -913,11 +950,14 @@ const VACCINE_DETAILS = {
     </ul>
     <h4>接種時機</h4>
     <ul>
-      <li><strong>≥ 50 歲：</strong>所有成人常規建議（不論有無 DM）</li>
-      <li><strong>19-49 歲免疫抑制：</strong>亦建議接種</li>
-      <li>曾打過舊型 Zostavax（ZVL）：仍需重新接種 Shingrix 2 劑</li>
+      <li><strong>≥ 50 歲：</strong>所有成人常規建議（CDC、ADA、AACE 皆推薦）</li>
+      <li><strong>18-50 歲 DM：</strong>台灣 2026 T2DM 指引建議合併 CKD、高血壓、CVD、中風、免疫抑制者即可接種 RZV</li>
+      <li><strong>19-49 歲免疫抑制：</strong>CDC/ACIP 亦建議接種</li>
+      <li>曾打過舊型 Zostavax（ZVL）：仍需重新接種 Shingrix 2 劑（間隔 ≥1 年）</li>
       <li>曾得過帶狀疱疹：仍建議接種</li>
     </ul>
+    <h4>各國 DM 患者 RZV 建議</h4>
+    <p>USA CDC、ADA、AACE、德國 STIKO、西班牙、義大利、加拿大 Quebec 皆建議 DM ≥50 歲接種。Quebec 特別建議<strong>使用胰島素的 DM 患者 18 歲以上</strong>即可接種。</p>
     <h4>禁忌症</h4>
     <p>對前一劑或疫苗成分嚴重過敏。注意事項：活動性帶狀疱疹發作時應延後接種。</p>`,
 
@@ -941,22 +981,26 @@ const VACCINE_DETAILS = {
 
   'RSV': `
     <h4>為什麼糖尿病患者需要 RSV 疫苗？</h4>
-    <p>RSV 是成人嚴重下呼吸道感染的重要病因，尤其在老年人及慢性病族群。DM 合併其他風險因子時，RSV 住院及重症風險升高。</p>
+    <ul>
+      <li>DM 患者 RSV 相關肺炎風險為一般人的 <strong>2.7 倍</strong></li>
+      <li>台灣回顧性研究（2014-2023）：50 歲以上住院 RSV 患者中 <strong>33.7% 有 DM</strong></li>
+      <li>RSV 住院率約為 COVID-19 的 <strong>1.5 倍</strong></li>
+      <li>DM 患者住院死亡率超過 4%，肺炎為前 3 名死因</li>
+    </ul>
     <h4>DM 患者的特殊適應條件（50-74 歲）</h4>
-    <p>並非所有 DM 患者都符合 50-74 歲的 RSV 接種條件，必須符合以下至少一項：</p>
+    <p>專家共識：50-74 歲 DM 患者 RSV 疫苗 — <strong>Class 1; Level A; 88% 同意率</strong></p>
     <ul>
       <li>DM 合併末端器官損傷（CKD、神經病變、視網膜病變）</li>
       <li>DM 需使用胰島素或 SGLT2i 治療</li>
-      <li>合併其他獨立高風險條件（CVD、慢性肺病、肥胖 BMI≥40、免疫抑制、透析）</li>
+      <li>合併其他高風險條件（CVD、慢性肺病、肥胖 BMI≥40、免疫抑制、透析）</li>
     </ul>
-    <p><strong>僅使用飲食控制、metformin 或一般口服藥的 DM 患者不符合 50-74 歲適應條件。</strong></p>
-    <h4>疫苗選項</h4>
+    <h4>疫苗選項與品牌比較</h4>
     <ul>
-      <li><strong>Arexvy（GSK）：</strong>蛋白次單位</li>
-      <li><strong>Abrysvo（Pfizer）：</strong>蛋白次單位</li>
-      <li><strong>mResvia（Moderna）：</strong>mRNA 技術</li>
+      <li><strong>Arexvy（GSK，佐劑型）：</strong>VE 第 1 季 <strong>82.6%</strong>、第 2 季 74.5%、第 3 季 69.1%；高風險亞群 VE <strong>100%</strong></li>
+      <li><strong>Abrysvo（Pfizer，無佐劑）：</strong>VE 第 1 季 <strong>65.1%</strong>、第 2 季 58.8%</li>
+      <li><strong>mResvia（Moderna，mRNA）：</strong>60 歲以上適用</li>
     </ul>
-    <p>三者無品牌優先差異。單劑接種，非每年。</p>
+    <p><strong>專家共識：佐劑型 RSV 疫苗（Arexvy）對 DM 患者可能提供更持久保護（Class 2; Level B; 100% 同意）</strong></p>
     <h4>禁忌症與安全性</h4>
     <p>對疫苗成分嚴重過敏。與其他疫苗同時接種可能降低抗體效價及增加副作用。</p>
     <p><strong>GBS 安全信號（IDSA 2025）：</strong>RSV 疫苗與 Guillain-Barré Syndrome 風險增加相關（IRR 2.1, 95% CI 1.5-2.9），約每百萬劑 11.2 例超額。此為不同於流感疫苗的獨特安全信號，應告知病人。</p>
@@ -1239,17 +1283,19 @@ function generateRecommendations() {
       name: '流感疫苗 Influenza',
       priority: 'high',
       vaccines: p.age >= 65
-        ? 'HD-IIV3（高劑量）、RIV3（重組）或 aIIV3（佐劑）優先；若無法取得，則任何年齡適當的 IIV3'
+        ? 'aIIV3（佐劑，如 FLUAD）優先推薦（rVE 最高）；或 HD-IIV3（高劑量）、RIV3（重組）；台灣目前 HD-IIV3 尚未上市'
         : (p.isImmunocompromised() ? 'IIV3（不活化疫苗）— 禁用 LAIV3' : 'IIV3 或 RIV3 — ADA 建議 DM 患者不應使用 LAIV3（鼻噴）'),
       doses: '每年 1 劑',
       timing: '每年 9-10 月接種，流感季期間皆可',
-      rationale: '糖尿病患者感染流感後，高血糖惡化、DKA 及住院風險顯著增加。',
+      rationale: 'DM 患者感染流感後住院風險顯著增加。DANFLU-2 研究：HD 疫苗在 DM 亞群的流感住院 rVE 為 41.6%。',
       schedule_month: 0,
       notes: [],
     };
     if (p.pregnancy) rec.notes.push('孕婦禁用 LAIV3（鼻噴），請使用 IIV3 不活化疫苗。');
     if (p.isImmunocompromised()) rec.notes.push('免疫抑制病人禁用 LAIV3，僅可使用不活化疫苗。');
     rec.notes.push('ADA Standards of Care 明確建議 DM 患者不應使用 LAIV3（鼻噴式），應接種不活化或重組疫苗。');
+    if (p.age >= 65 && p.comorbidities.length >= 3) rec.notes.push('DM + ≥3 共病：研究顯示 aIIV3（FLUAD 佐劑）優於 HD-IIV3（Imran 2024, rVE 10.4%）。');
+    if (p.age >= 65) rec.notes.push('台灣注意：aIIV3（FLUAD）已上市（2023.03）；HD-IIV3（高劑量）尚未引進台灣。');
     const fluIC = getICTimingNote('flu');
     if (fluIC) rec.notes.push(fluIC);
     recs.push(rec);
@@ -1275,7 +1321,7 @@ function generateRecommendations() {
       doseDetail = isIC
         ? 'PCV20/PCV21: 1 劑；或 PCV15 → 8 週後 PPSV23（免疫抑制最短間隔 8 週）'
         : 'PCV20/PCV21: 1 劑；或 PCV15 → 至少 1 年後 PPSV23';
-      notes.push('PCV21 缺少 serotype 4 覆蓋；若當地 serotype 4 盛行率高，PCV20 或 PCV15+PPSV23 覆蓋更廣。');
+      notes.push('台灣 IPD 血清型覆蓋率：PCV21 覆蓋 67-85% vs PCV20 僅 37-47%（2021-2025 資料）。台灣建議優先選用 PCV21。PCV21 缺少 serotype 4，但台灣 serotype 4 盛行率已下降。');
     } else if (h === 'pcv15') {
       vaccineDetail = 'PPSV23（補打）';
       doseDetail = isIC ? '距 PCV15 至少 8 週後接種 PPSV23' : '距 PCV15 至少 1 年後接種 PPSV23';
@@ -1295,7 +1341,7 @@ function generateRecommendations() {
         vaccines: vaccineDetail,
         doses: doseDetail,
         timing: '任何時間皆可接種',
-        rationale: '糖尿病是肺炎鏈球菌感染的獨立危險因子，DM 患者肺炎鏈球菌感染死亡率高達 50%（ADA）。19-49 歲 DM 為 risk-based indication；50 歲以上為 2024 年起 universal recommendation。',
+        rationale: 'DM 為 IPD 獨立危險因子（OR 2.42）、住院風險 OR 2.98、死亡風險 OR 1.75。CAPiTA 試驗：PCV13 在 DM 患者 VE 高達 89.5%（非 DM 僅 24.7%）。',
         schedule_month: 0,
         notes: notes,
       });
@@ -1356,30 +1402,35 @@ function generateRecommendations() {
   }
 
   // === 5. ZOSTER (Shingrix) ===
+  const dmHasHZRisk = p.hasDMComplications() || p.hasComorbidity('cvd');
   const zosterNeeded = (() => {
     if (p.hist.zoster === 'complete') return false;
     if (p.age >= 50) return true;
     if (p.isImmunocompromised() && p.age >= 19) return true;
+    // Taiwan 2026 T2DM guidelines: 18-50 DM with CKD/CVD/HTN → recommend RZV
+    if (p.age >= 18 && p.age < 50 && dmHasHZRisk) return true;
     return false;
   })();
 
   if (zosterNeeded) {
     const h = p.hist.zoster;
+    const isYoungDM = p.age < 50 && !p.isImmunocompromised() && dmHasHZRisk;
     const rec = {
       name: '帶狀疱疹疫苗 Zoster (Shingrix)',
-      priority: p.age >= 50 ? 'medium' : 'conditional',
+      priority: p.age >= 50 ? 'medium' : (isYoungDM ? 'medium' : 'conditional'),
       vaccines: 'RZV (Shingrix) — 重組疫苗',
       doses: h === 'partial' ? '補打第 2 劑（距第 1 劑 2-6 個月）'
         : h === 'zvl_only' ? '需重新接種 RZV 2 劑系列（不論之前 Zostavax）'
         : '2 劑系列：第 0 劑 → 2-6 個月後第 2 劑（最短間隔 4 週）',
-      timing: p.isImmunocompromised() ? '19 歲以上免疫抑制者即可接種' : '50 歲以上常規建議',
-      rationale: p.isImmunocompromised()
-        ? '免疫抑制者帶狀疱疹風險顯著升高，19 歲以上即建議接種 RZV。'
-        : '50 歲以上常規建議。糖尿病可能增加帶狀疱疹風險。',
+      timing: p.isImmunocompromised() ? '19 歲以上免疫抑制者即可接種'
+        : isYoungDM ? '台灣 2026 T2DM 指引：18-50 歲 DM 合併 CKD/CVD 即建議接種'
+        : '50 歲以上常規建議',
+      rationale: `DM 患者帶狀疱疹風險 RR 1.24-2.1（meta-analysis）；30-44 歲 DM 患者 RR 高達 3.7。合併微/大血管併發症者風險更高。`,
       schedule_month: 0,
       notes: [],
     };
     if (p.pregnancy) rec.notes.push('建議延至產後再接種。');
+    if (isYoungDM) rec.notes.push('台灣 2026 T2DM 指引建議 18-50 歲 DM 合併高風險條件（CKD、高血壓、CVD、中風、免疫抑制）即可接種 RZV。');
     recs.push(rec);
   }
 
@@ -1432,10 +1483,10 @@ function generateRecommendations() {
     recs.push({
       name: 'RSV 呼吸道融合病毒疫苗',
       priority: 'medium',
-      vaccines: 'Arexvy、Abrysvo 或 mResvia（無品牌優先）',
+      vaccines: 'Arexvy（佐劑型，VE 82.6%，DM 優先推薦）、Abrysvo（VE 65.1%）或 mResvia（mRNA）',
       doses: '單劑（非每年接種）',
       timing: '建議每年 8-10 月（RSV 季節前）接種',
-      rationale: '符合條件：' + qualifiers.join('、'),
+      rationale: 'DM 患者 RSV 肺炎風險為 2.7 倍；台灣 50+ 住院 RSV 患者 33.7% 有 DM。符合條件：' + qualifiers.join('、'),
       schedule_month: 0,
       notes: [
         p.age < 75 ? '50-74 歲：符合高風險條件時建議接種（2025 年 6 月 addendum 擴展至 50-59 歲）。' : '',
