@@ -993,32 +993,47 @@ const VACCINE_DETAILS = {
     </ul>`,
 };
 
-// Checkbox toggle styling
-document.querySelectorAll('.checkbox-item').forEach(item => {
-  const cb = item.querySelector('input[type="checkbox"]');
-  cb.addEventListener('change', () => {
-    item.classList.toggle('checked', cb.checked);
-    // If dialysis is checked, auto-check CKD
-    if (cb.value === 'dialysis' && cb.checked) {
-      const ckdCb = document.querySelector('.checkbox-item[data-value="ckd"] input');
-      if (!ckdCb.checked) { ckdCb.checked = true; ckdCb.closest('.checkbox-item').classList.add('checked'); }
-    }
-    // Show/hide IC type selector
-    if (cb.value === 'immunosuppressed' || cb.value === 'hiv' || cb.value === 'transplant') {
-      const anyIC = document.querySelector('#comorbidities input[value="immunosuppressed"]').checked
-        || document.querySelector('#comorbidities input[value="hiv"]').checked
-        || document.querySelector('#comorbidities input[value="transplant"]').checked;
-      document.getElementById('icTypeGroup').style.display = anyIC ? 'block' : 'none';
-      // Auto-set IC type based on checkbox
-      if (cb.value === 'hiv' && cb.checked) document.getElementById('icType').value = 'hiv';
-      if (cb.value === 'transplant' && cb.checked) document.getElementById('icType').value = 'sot';
-    }
-    // If transplant is checked, auto-check immunosuppressed
-    if (cb.value === 'transplant' && cb.checked) {
-      const isCb = document.querySelector('.checkbox-item[data-value="immunosuppressed"] input');
-      if (!isCb.checked) { isCb.checked = true; isCb.closest('.checkbox-item').classList.add('checked'); }
-    }
-  });
+// ===== CACHED DOM REFERENCES =====
+const $age = document.getElementById('age');
+const $dmType = document.getElementById('dmType');
+const $dmTreatment = document.getElementById('dmTreatment');
+const $pregnancy = document.getElementById('pregnancy');
+const $icType = document.getElementById('icType');
+const $results = document.getElementById('results');
+const $vaccineCount = document.getElementById('vaccineCount');
+const $vaccineList = document.getElementById('vaccineList');
+const $patientSummary = document.getElementById('patientSummary');
+const $timelineCard = document.getElementById('timelineCard');
+const $timeline = document.getElementById('timeline');
+const $formError = document.getElementById('formError');
+const $inputSection = document.getElementById('inputSection');
+
+// Checkbox toggle — single delegated listener instead of per-element
+document.getElementById('comorbidities').addEventListener('change', (e) => {
+  const cb = e.target;
+  if (cb.type !== 'checkbox') return;
+  const item = cb.closest('.checkbox-item');
+  if (item) item.classList.toggle('checked', cb.checked);
+
+  // Auto-cascade: dialysis → CKD, transplant → immunosuppressed
+  if (cb.value === 'dialysis' && cb.checked) {
+    const ckdCb = document.querySelector('#comorbidities input[value="ckd"]');
+    if (!ckdCb.checked) { ckdCb.checked = true; ckdCb.closest('.checkbox-item').classList.add('checked'); }
+  }
+  if (cb.value === 'transplant' && cb.checked) {
+    const isCb = document.querySelector('#comorbidities input[value="immunosuppressed"]');
+    if (!isCb.checked) { isCb.checked = true; isCb.closest('.checkbox-item').classList.add('checked'); }
+  }
+
+  // Show/hide IC type selector
+  if (['immunosuppressed', 'hiv', 'transplant'].includes(cb.value)) {
+    const anyIC = document.querySelector('#comorbidities input[value="immunosuppressed"]').checked
+      || document.querySelector('#comorbidities input[value="hiv"]').checked
+      || document.querySelector('#comorbidities input[value="transplant"]').checked;
+    document.getElementById('icTypeGroup').style.display = anyIC ? 'block' : 'none';
+    if (cb.value === 'hiv' && cb.checked) $icType.value = 'hiv';
+    if (cb.value === 'transplant' && cb.checked) $icType.value = 'sot';
+  }
 });
 
 const PRESETS = {
@@ -1049,13 +1064,13 @@ function applyPreset(key) {
   if (!p) return;
 
   // Hide results if shown
-  document.getElementById('results').style.display = 'none';
+  $results.style.display = 'none';
 
   // Basic fields
-  document.getElementById('age').value = p.age;
-  document.getElementById('dmType').value = p.dmType;
-  document.getElementById('dmTreatment').value = p.dmTreatment;
-  document.getElementById('pregnancy').value = p.pregnancy;
+  $age.value = p.age;
+  $dmType.value = p.dmType;
+  $dmTreatment.value = p.dmTreatment;
+  $pregnancy.value = p.pregnancy;
 
   // Clear all comorbidities first
   document.querySelectorAll('#comorbidities input').forEach(cb => {
@@ -1072,24 +1087,23 @@ function applyPreset(key) {
   document.querySelectorAll('.vaccine-history-item select').forEach(s => s.selectedIndex = 0);
 
   // Flash the form to show it was filled
-  const form = document.getElementById('inputSection');
-  form.style.transition = 'box-shadow 0.3s';
-  form.style.boxShadow = '0 0 0 3px var(--primary)';
-  setTimeout(() => { form.style.boxShadow = ''; }, 600);
+  $inputSection.style.transition = 'box-shadow 0.3s';
+  $inputSection.style.boxShadow = '0 0 0 3px var(--primary)';
+  setTimeout(() => { $inputSection.style.boxShadow = ''; }, 600);
 
   // Scroll to form
-  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  $inputSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function getInputs() {
-  const age = parseInt(document.getElementById('age').value);
-  const dmType = document.getElementById('dmType').value;
-  const dmTreatment = document.getElementById('dmTreatment').value;
-  const pregnancy = document.getElementById('pregnancy').value === 'yes';
+  const age = parseInt($age.value);
+  const dmType = $dmType.value;
+  const dmTreatment = $dmTreatment.value;
+  const pregnancy = $pregnancy.value === 'yes';
 
   const comorbidities = [];
   document.querySelectorAll('#comorbidities input:checked').forEach(cb => comorbidities.push(cb.value));
-  const icType = document.getElementById('icType').value;
+  const icType = $icType.value;
 
   return {
     age, dmType, dmTreatment, pregnancy, comorbidities, icType,
@@ -1119,7 +1133,7 @@ function getInputs() {
 function generateRecommendations() {
   const p = getInputs();
 
-  const errEl = document.getElementById('formError');
+  const errEl = $formError;
   if (!p.age || p.age < 18 || !p.dmType) {
     errEl.textContent = '請填寫年齡（18歲以上）及糖尿病類型';
     errEl.classList.add('visible');
@@ -1488,11 +1502,11 @@ function generateRecommendations() {
 }
 
 function renderResults(patient, recs) {
-  document.getElementById('results').style.display = 'block';
-  document.getElementById('vaccineCount').textContent = recs.filter(r => !r.isWarning).length;
+  $results.style.display = 'block';
+  $vaccineCount.textContent = recs.filter(r => !r.isWarning).length;
 
   // Patient summary
-  const summaryEl = document.getElementById('patientSummary');
+  const summaryEl = $patientSummary;
   const comorbidityNames = {
     ckd: 'CKD', dialysis: '洗腎', cvd: 'CVD', cld: '慢性肝病', lung: '慢性肺病',
     immunosuppressed: '免疫抑制', hiv: 'HIV', obesity: 'BMI≥40',
@@ -1513,23 +1527,23 @@ function renderResults(patient, recs) {
     </div>
   `;
 
-  // Vaccine cards
-  const listEl = document.getElementById('vaccineList');
-  listEl.innerHTML = '';
+  // Vaccine cards — batch DOM insertion via DocumentFragment
+  const listEl = $vaccineList;
+  const priorityLabel = { high: '強烈建議', medium: '建議', conditional: '依條件建議', discuss: '建議討論', info: '注意' };
+  const frag = document.createDocumentFragment();
 
   recs.forEach((r, i) => {
-    const priorityLabel = { high: '強烈建議', medium: '建議', conditional: '依條件建議', discuss: '建議討論', info: '注意' };
     const card = document.createElement('div');
     card.className = `vaccine-card priority-${r.priority} fade-in`;
     card.style.animationDelay = `${i * 0.05}s`;
 
-    // Find matching detail content
     const detailKey = Object.keys(VACCINE_DETAILS).find(k => r.name.includes(k));
     const detailHTML = detailKey ? VACCINE_DETAILS[detailKey] : '';
     const hasDetail = !!detailHTML;
+    const filteredNotes = r.notes ? r.notes.filter(Boolean) : [];
 
     card.innerHTML = `
-      <div class="vaccine-card-header" ${hasDetail ? 'onclick="toggleCard(this)"' : ''} role="${hasDetail ? 'button' : ''}" ${hasDetail ? 'aria-expanded="false"' : ''} tabindex="${hasDetail ? '0' : '-1'}">
+      <div class="vaccine-card-header" ${hasDetail ? 'onclick="toggleCard(this)" role="button" aria-expanded="false" tabindex="0"' : 'tabindex="-1"'}>
         <h3>${r.isWarning ? '' : '💉 '}${r.name}${hasDetail ? '<span class="expand-icon">▼</span>' : ''}</h3>
         <span class="priority-badge ${r.priority}">${priorityLabel[r.priority]}</span>
       </div>
@@ -1538,31 +1552,29 @@ function renderResults(patient, recs) {
         <div class="detail-row"><span class="detail-label">劑量</span><span>${glossarize(r.doses)}</span></div>
         ${r.timing ? `<div class="detail-row"><span class="detail-label">時機</span><span>${glossarize(r.timing)}</span></div>` : ''}
         <div class="schedule-box">📋 <strong>依據：</strong>${glossarize(r.rationale)}</div>
-        ${r.notes && r.notes.filter(n=>n).length ? r.notes.filter(n=>n).map(n => `<div class="note">📌 ${glossarize(n)}</div>`).join('') : ''}
+        ${filteredNotes.map(n => `<div class="note">📌 ${glossarize(n)}</div>`).join('')}
         ${r.contraindications ? r.contraindications.map(c => `<div class="contraindication">⛔ ${glossarize(c)}</div>`).join('') : ''}
       </div>
-      ${hasDetail ? `<div class="expand-hint" onclick="toggleCard(this.previousElementSibling.previousElementSibling)">點擊展開完整說明 ▼</div>` : ''}
-      ${hasDetail ? `<div class="vaccine-card-detail">${glossarize(detailHTML)}</div>` : ''}
+      ${hasDetail ? `<div class="expand-hint" onclick="toggleCard(this.previousElementSibling.previousElementSibling)">點擊展開完整說明 ▼</div><div class="vaccine-card-detail">${glossarize(detailHTML)}</div>` : ''}
     `;
-    listEl.appendChild(card);
+    frag.appendChild(card);
   });
+
+  listEl.innerHTML = '';
+  listEl.appendChild(frag);
 
   // Timeline
   buildTimeline(recs);
 
   // Scroll to results
-  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  $results.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function buildTimeline(recs) {
   const activeRecs = recs.filter(r => !r.isWarning);
   if (!activeRecs.length) return;
 
-  const card = document.getElementById('timelineCard');
-  const tl = document.getElementById('timeline');
-  card.style.display = 'block';
-  tl.innerHTML = '';
-
+  $timelineCard.style.display = 'block';
   const now = new Date();
   const monthNames = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
 
@@ -1612,6 +1624,7 @@ function buildTimeline(recs) {
     }
   });
 
+  const tlFrag = document.createDocumentFragment();
   groups.forEach(g => {
     if (!g.items.length) return;
     const div = document.createElement('div');
@@ -1620,16 +1633,15 @@ function buildTimeline(recs) {
       <div class="time-label">${g.label}</div>
       <div class="time-content">${[...new Set(g.items)].join('、')}</div>
     `;
-    tl.appendChild(div);
+    tlFrag.appendChild(div);
   });
+  $timeline.innerHTML = '';
+  $timeline.appendChild(tlFrag);
 }
 
 function copyText() {
-  const recs = document.getElementById('vaccineList');
-  const summary = document.getElementById('patientSummary');
-  const timeline = document.getElementById('timelineCard');
-  let text = summary.innerText + '\n\n' + recs.innerText;
-  if (timeline.style.display !== 'none') text += '\n\n' + timeline.innerText;
+  let text = $patientSummary.innerText + '\n\n' + $vaccineList.innerText;
+  if ($timelineCard.style.display !== 'none') text += '\n\n' + $timelineCard.innerText;
   navigator.clipboard.writeText(text).then(() => {
     const btn = event.target;
     btn.textContent = '✓ 已複製';
@@ -1656,17 +1668,18 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ===== GLOSSARY SYSTEM =====
+// Pre-compile regex once at load time (not per-call)
+const _glossaryRegex = (() => {
+  const terms = Object.keys(GLOSSARY).sort((a, b) => b.length - a.length);
+  const escaped = terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  return new RegExp(`(?<![\\w/\\->])(${escaped.join('|')})(?![\\w<])`, 'g');
+})();
+
 function glossarize(text) {
   if (!text) return text;
-  // Sort terms by length (longest first) to avoid partial matches
-  const terms = Object.keys(GLOSSARY).sort((a, b) => b.length - a.length);
-  // Build regex: match whole terms, avoid matching inside HTML tags or already-wrapped terms
-  const escaped = terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  const regex = new RegExp(`(?<![\\w/\\->])(${escaped.join('|')})(?![\\w<])`, 'g');
-  // Track which terms we've already wrapped to avoid duplicates in the same text
   const seen = new Set();
-  return text.replace(regex, (match) => {
-    if (seen.has(match)) return match; // only annotate first occurrence per text block
+  return text.replace(_glossaryRegex, (match) => {
+    if (seen.has(match)) return match;
     seen.add(match);
     return `<span class="glossary-term" data-term="${match}">${match}</span>`;
   });
@@ -1705,19 +1718,19 @@ document.addEventListener('click', (e) => {
 });
 
 function resetForm() {
-  document.getElementById('results').style.display = 'none';
-  document.getElementById('age').value = '';
-  document.getElementById('dmType').value = 'T2DM';
-  document.getElementById('dmTreatment').value = 'oha';
-  document.getElementById('pregnancy').value = 'no';
+  $results.style.display = 'none';
+  $age.value = '';
+  $dmType.value = 'T2DM';
+  $dmTreatment.value = 'oha';
+  $pregnancy.value = 'no';
   document.querySelectorAll('#comorbidities input:checked').forEach(cb => {
     cb.checked = false;
     cb.closest('.checkbox-item').classList.remove('checked');
   });
   document.querySelectorAll('.vaccine-history-item select').forEach(s => s.selectedIndex = 0);
-  document.getElementById('icType').value = 'unspecified';
+  $icType.value = 'unspecified';
   document.getElementById('icTypeGroup').style.display = 'none';
-  document.getElementById('inputSection').scrollIntoView({ behavior: 'smooth' });
+  $inputSection.scrollIntoView({ behavior: 'smooth' });
 }
 </script>
 </body>
