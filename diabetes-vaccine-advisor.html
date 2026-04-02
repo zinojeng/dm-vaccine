@@ -607,6 +607,21 @@ button:focus-visible, select:focus-visible, input:focus-visible {
         <input type="checkbox" value="transplant"> 器官移植 Transplant
       </label>
     </div>
+
+    <!-- Immunosuppression type (shown when immunosuppressed checked) -->
+    <div class="form-group" id="icTypeGroup" style="display:none; margin-top:12px;">
+      <label>免疫抑制類型 Immunosuppression Type <span class="hint">(影響疫苗接種時機)</span></label>
+      <select id="icType">
+        <option value="unspecified">未細分 / 不確定</option>
+        <option value="hiv">HIV</option>
+        <option value="sot">器官移植後 (SOT)</option>
+        <option value="hsct">造血幹細胞移植 (HCT/CAR-T)</option>
+        <option value="chemo">化療 / 放療 Chemotherapy</option>
+        <option value="bcell">Anti-B cell 治療 (如 Rituximab)</option>
+        <option value="biologic">生物製劑 / 免疫抑制劑 (TNF-α, IL inhibitors)</option>
+        <option value="steroid">高劑量類固醇 (≥20mg Prednisone ≥14天)</option>
+      </select>
+    </div>
   </div>
 
   <!-- Step 3: Vaccine History -->
@@ -720,9 +735,10 @@ button:focus-visible, select:focus-visible, input:focus-visible {
     </div>
 
     <div class="disclaimer">
-      <strong>免責聲明 Disclaimer:</strong> 本系統根據 CDC/ACIP 2025 年成人疫苗接種時程表及 ADA 指引建立，僅供醫護人員臨床參考，不取代專業醫療判斷。實際接種決策應考量個別病人狀況、禁忌症及當地可用疫苗。
-      <br>Based on CDC/ACIP 2025 Adult Immunization Schedule & ADA guidelines. For clinical reference only.
-      <br>Last updated: 2026-04 (含 2025-08 ACIP Addendum)
+      <strong>免責聲明 Disclaimer:</strong> 本系統僅供醫護人員臨床參考，不取代專業醫療判斷。實際接種決策應考量個別病人狀況、禁忌症及當地可用疫苗。
+      <br><strong>參考指引：</strong>CDC/ACIP 2025 Adult Immunization Schedule (含 2025-08 Addendum)、ADA Standards of Care 2026 (Section 4 & 11)、ACIP General Best Practice Guidelines、IDSA 2025 Immunocompromised Vaccination Guidelines、台灣 CDC 成人預防接種建議時程表 (115年3月版)
+      <br><strong>台灣差異提醒：</strong>台灣 CDC 時程表僅流感明確列出 DM 為高風險族群；肺炎鏈球菌疫苗未將 DM 列入 IPD 高風險（與 US ACIP 不同）。台灣另有日本腦炎疫苗（JE）為常規建議。
+      <br>Last updated: 2026-04
     </div>
   </div>
 
@@ -734,7 +750,7 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 </div>
 
 <div class="footer no-print">
-  DM Vaccine Advisor v2.0 | CDC/ACIP 2025-2026 Guidelines<br>
+  DM Vaccine Advisor v3.0 | CDC/ACIP + ADA + IDSA + 台灣 CDC<br>
   Designed for healthcare professionals
 </div>
 
@@ -773,6 +789,15 @@ const GLOSSARY = {
   'Nuvaxovid': { full: 'Novavax Nuvaxovid', desc: 'Novavax 的蛋白次單位 COVID-19 疫苗，非 mRNA 技術，適合偏好非 mRNA 疫苗的接種者。' },
   'MenACWY': { full: 'Meningococcal Conjugate Vaccine (ACWY)', desc: '腦膜炎雙球菌四價結合型疫苗，涵蓋 A、C、W、Y 血清群。無脾者及 HIV 感染者為高風險適應症。' },
   'Twinrix': { full: 'Twinrix (HepA + HepB combined)', desc: 'A 型肝炎 + B 型肝炎混合疫苗，3 劑系列（0、1、6 月），或加速 4 劑系列（0、7 天、21-30 天、12 月）。' },
+  'GBS': { full: 'Guillain-Barré Syndrome', desc: '乖乖-巴瑞症候群，一種自體免疫性周邊神經病變。RSV 疫苗有 GBS 安全信號（IRR 2.1，約每百萬劑 11 例超額），流感疫苗則無顯著增加風險。' },
+  'anti-HBs': { full: 'Antibody to Hepatitis B Surface Antigen', desc: 'B 型肝炎表面抗體。≥10 mIU/mL 代表具有保護性免疫力。透析及免疫抑制患者應於完成 HepB 接種後 1-2 個月檢測。' },
+  'SOT': { full: 'Solid Organ Transplant', desc: '實體器官移植（腎、肝、心、肺等）。移植後使用免疫抑制劑，影響疫苗接種時機。COVID ≥3 個月、流感 ≥1 個月、RSV ≥6 個月後方可接種。' },
+  'HCT': { full: 'Hematopoietic Cell Transplant', desc: '造血幹細胞移植。移植會清除先前所有疫苗免疫記憶，需於移植後 6 個月重新開始非活疫苗接種。' },
+  'Rituximab': { full: 'Rituximab (anti-CD20)', desc: 'Anti-B cell 單株抗體，用於淋巴瘤、類風濕性關節炎等。因長期抑制 B 細胞，需等待 ≥6 個月後再接種疫苗（包括非活疫苗）。' },
+  'VE': { full: 'Vaccine Effectiveness', desc: '疫苗效力/效果。衡量疫苗在真實世界中預防感染、住院或死亡的能力。免疫抑制者的 VE 通常低於一般人。' },
+  'IPD': { full: 'Invasive Pneumococcal Disease', desc: '侵襲性肺炎鏈球菌疾病，包括菌血症、腦膜炎等。DM 為獨立危險因子。台灣 IPD 高風險定義不含 DM（與 US ACIP 不同）。' },
+  'eGFR': { full: 'Estimated Glomerular Filtration Rate', desc: '估算腎絲球過濾率。KDIGO 分級：G1 ≥90、G2 60-89、G3a 45-59、G3b 30-44、G4 15-29、G5 <15 mL/min/1.73m²。影響用藥選擇及疫苗劑量。' },
+  'GRADE': { full: 'Grading of Recommendations Assessment, Development and Evaluation', desc: '證據評估分級系統。ACIP 及 IDSA 用於評定疫苗建議的證據品質（High/Moderate/Low/Very Low）及建議強度（Strong/Conditional）。' },
 };
 
 // ===== DETAILED DESCRIPTIONS FOR EACH VACCINE =====
@@ -791,8 +816,12 @@ const VACCINE_DETAILS = {
     <h4>禁忌症</h4>
     <ul>
       <li>對前一劑同類疫苗或疫苗成分有嚴重過敏反應（anaphylaxis）</li>
-      <li>LAIV3 另外禁用於：免疫抑制、懷孕、無脾、人工耳蝸、CSF leak</li>
-    </ul>`,
+      <li><strong>LAIV3 禁用於 DM 患者</strong>（ADA Standards of Care 明確建議）、免疫抑制者、孕婦、無脾、人工耳蝸、CSF leak</li>
+    </ul>
+    <h4>免疫抑制者注意（IDSA 2025）</h4>
+    <p>免疫抑制者流感 VE 約 32%（住院預防），低於一般人（42%），但仍具臨床意義。若無法等到最佳時機，應在流感季期間接種（反應減弱仍優於無保護）。</p>
+    <h4>台灣指引</h4>
+    <p>台灣 CDC 明確將糖尿病列為流感疫苗高危險群，19-64 歲高風險慢性病人可獲公費流感疫苗。</p>`,
 
   'Pneumococcal': `
     <h4>為什麼糖尿病患者需要肺炎鏈球菌疫苗？</h4>
@@ -809,7 +838,11 @@ const VACCINE_DETAILS = {
       <li><strong>≥ 50 歲：</strong>2024 年起為 universal recommendation（不論有無 DM）</li>
     </ul>
     <h4>禁忌症</h4>
-    <p>對前一劑或疫苗成分嚴重過敏；對白喉類毒素疫苗嚴重過敏（PCV15/20/21 含白喉蛋白載體）。</p>`,
+    <p>對前一劑或疫苗成分嚴重過敏；對白喉類毒素疫苗嚴重過敏（PCV15/20/21 含白喉蛋白載體）。</p>
+    <h4>ADA 證據</h4>
+    <p>ADA Standards of Care 引用 Kornum et al. (2008)：DM 患者肺炎鏈球菌感染住院率及死亡率均顯著升高，<strong>死亡率可達 50%</strong>。</p>
+    <h4>台灣差異</h4>
+    <p><strong>注意：</strong>台灣 CDC 的 IPD 高風險定義<strong>不含糖尿病</strong>（僅含無脾、免疫不全、人工耳蝸、CSF leak、惡性腫瘤/移植）。此與 US ACIP 明確將 DM 列為肺炎鏈球菌適應症不同。台灣 ≥65 歲為常規公費接種。</p>`,
 
   'Hepatitis B': `
     <h4>為什麼糖尿病患者需要 B 肝疫苗？</h4>
@@ -827,7 +860,11 @@ const VACCINE_DETAILS = {
       <li><strong>≥ 60 歲：</strong>SCDM（共同臨床決策）— DM 為考量因素之一。若病人主動要求，即應給予</li>
     </ul>
     <h4>禁忌症</h4>
-    <p>對前一劑或疫苗成分（含酵母）嚴重過敏。PreHevbrio 於孕期禁用。</p>`,
+    <p>對前一劑或疫苗成分（含酵母）嚴重過敏。PreHevbrio 於孕期禁用。</p>
+    <h4>CKD 患者特別建議（ADA Section 11）</h4>
+    <p>ADA 建議 CKD 可能進展至腎衰竭者應<strong>及早接種 HepB</strong>。透析患者需使用高劑量配方，且應於完成接種後 1-2 個月檢測 anti-HBs（≥10 mIU/mL 為保護性抗體）。若無反應，可重新接種一輪。</p>
+    <h4>台灣指引</h4>
+    <p>台灣 CDC 將血液透析病人列為 HepB 高危險群。若 anti-HBs <10 mIU/mL，建議重新接種 0-1-6 月系列。</p>`,
 
   'COVID-19': `
     <h4>為什麼糖尿病患者需要 COVID-19 疫苗？</h4>
@@ -846,7 +883,14 @@ const VACCINE_DETAILS = {
       <li><strong>免疫抑制：</strong>建議 2 劑</li>
     </ul>
     <h4>禁忌症</h4>
-    <p>對前一劑或疫苗成分嚴重過敏。注意事項：3 週內有心肌炎/心包膜炎病史、MIS-C/MIS-A 病史。</p>`,
+    <p>對前一劑或疫苗成分嚴重過敏。注意事項：3 週內有心肌炎/心包膜炎病史、MIS-C/MIS-A 病史。</p>
+    <h4>免疫抑制者 VE（IDSA 2025）</h4>
+    <ul>
+      <li>住院預防 VE：37-46%（一般人 &gt;60%）</li>
+      <li>重症預防 VE：40%</li>
+      <li>死亡預防 VE：61%（證據等級 Low）</li>
+    </ul>
+    <p>若無法等到最佳接種時機（如移植後 3 個月），仍建議接種 — 部分保護優於無保護。</p>`,
 
   'Zoster': `
     <h4>為什麼要接種帶狀疱疹疫苗？</h4>
@@ -904,8 +948,13 @@ const VACCINE_DETAILS = {
       <li><strong>mResvia（Moderna）：</strong>mRNA 技術</li>
     </ul>
     <p>三者無品牌優先差異。單劑接種，非每年。</p>
-    <h4>禁忌症</h4>
-    <p>對疫苗成分嚴重過敏。與其他疫苗同時接種可能降低抗體效價及增加副作用。</p>`,
+    <h4>禁忌症與安全性</h4>
+    <p>對疫苗成分嚴重過敏。與其他疫苗同時接種可能降低抗體效價及增加副作用。</p>
+    <p><strong>GBS 安全信號（IDSA 2025）：</strong>RSV 疫苗與 Guillain-Barré Syndrome 風險增加相關（IRR 2.1, 95% CI 1.5-2.9），約每百萬劑 11.2 例超額。此為不同於流感疫苗的獨特安全信號，應告知病人。</p>
+    <h4>免疫抑制者 VE（IDSA 2025）</h4>
+    <p>RSV 疫苗在免疫抑制者住院預防 VE 約 70%（OR 0.30），為三種疫苗（COVID/Flu/RSV）中最高。</p>
+    <h4>接種時機（免疫抑制者）</h4>
+    <p>RSV 疫苗的建議等待時間通常<strong>長於</strong> COVID 及流感：器官移植後 ≥6 個月、HCT/CAR-T 後 ≥6 個月、B-cell depletion 後 ≥6 個月。</p>`,
 
   'HPV': `
     <h4>HPV 疫苗說明</h4>
@@ -953,6 +1002,16 @@ document.querySelectorAll('.checkbox-item').forEach(item => {
     if (cb.value === 'dialysis' && cb.checked) {
       const ckdCb = document.querySelector('.checkbox-item[data-value="ckd"] input');
       if (!ckdCb.checked) { ckdCb.checked = true; ckdCb.closest('.checkbox-item').classList.add('checked'); }
+    }
+    // Show/hide IC type selector
+    if (cb.value === 'immunosuppressed' || cb.value === 'hiv' || cb.value === 'transplant') {
+      const anyIC = document.querySelector('#comorbidities input[value="immunosuppressed"]').checked
+        || document.querySelector('#comorbidities input[value="hiv"]').checked
+        || document.querySelector('#comorbidities input[value="transplant"]').checked;
+      document.getElementById('icTypeGroup').style.display = anyIC ? 'block' : 'none';
+      // Auto-set IC type based on checkbox
+      if (cb.value === 'hiv' && cb.checked) document.getElementById('icType').value = 'hiv';
+      if (cb.value === 'transplant' && cb.checked) document.getElementById('icType').value = 'sot';
     }
     // If transplant is checked, auto-check immunosuppressed
     if (cb.value === 'transplant' && cb.checked) {
@@ -1030,9 +1089,10 @@ function getInputs() {
 
   const comorbidities = [];
   document.querySelectorAll('#comorbidities input:checked').forEach(cb => comorbidities.push(cb.value));
+  const icType = document.getElementById('icType').value;
 
   return {
-    age, dmType, dmTreatment, pregnancy, comorbidities,
+    age, dmType, dmTreatment, pregnancy, comorbidities, icType,
     hist: {
       flu: document.getElementById('hist_flu').value,
       pneumo: document.getElementById('hist_pneumo').value,
@@ -1070,6 +1130,45 @@ function generateRecommendations() {
 
   const recs = [];
 
+  // IDSA 2025 immunocompromised timing guidance
+  const IC_TIMING = {
+    flu: {
+      sot: '移植前 ≥2 週；移植後 ≥1 個月（流感季可提前）',
+      hsct: '移植後 ≥3 個月；B-cell depletion 後 ≥3-6 個月',
+      chemo: '化療前 ≥2 週；治療期間亦可接種（反應可能減弱）',
+      bcell: 'Anti-B cell 治療後 ≥3-6 個月',
+      biologic: '開始治療前 ≥2 週；停藥後 ≥3 個月',
+      steroid: '高劑量期間可接種（反應可能減弱）',
+      hiv: '配合常規回診接種',
+    },
+    covid: {
+      sot: '移植前 ≥2 週；移植後 ≥3 個月',
+      hsct: '移植後 ≥3 個月；B-cell depletion 後 ≥3-6 個月',
+      chemo: '化療前 ≥2 週；治療期間亦可接種',
+      bcell: 'Anti-B cell 治療後 ≥3-6 個月',
+      biologic: '開始治療前 ≥2 週；停藥後 ≥3 個月',
+      steroid: '高劑量期間可接種（反應可能減弱）',
+      hiv: '配合常規回診接種',
+    },
+    rsv: {
+      sot: '移植前 ≥2 週；移植後 ≥6 個月（RSV 季可提前至 1 個月）',
+      hsct: '移植後 ≥6 個月；B-cell depletion 後 ≥6 個月',
+      chemo: '化療前 ≥2 週；治療期間亦可接種',
+      bcell: 'Anti-B cell 治療後 ≥6 個月',
+      biologic: '開始治療前 ≥2 週；停藥後 ≥3-6 個月',
+      steroid: '高劑量期間可接種（反應可能減弱）',
+      hiv: '配合常規回診接種',
+    },
+  };
+
+  function getICTimingNote(vaccine) {
+    if (!p.isImmunocompromised() || p.icType === 'unspecified') return '';
+    const timings = IC_TIMING[vaccine];
+    if (!timings || !timings[p.icType]) return '';
+    const typeNames = { hiv:'HIV', sot:'器官移植', hsct:'HCT/CAR-T', chemo:'化療', bcell:'Anti-B cell', biologic:'生物製劑', steroid:'高劑量類固醇' };
+    return `免疫抑制接種時機（${typeNames[p.icType]}，IDSA 2025）：${timings[p.icType]}`;
+  }
+
   // === 1. INFLUENZA ===
   if (p.hist.flu !== 'current') {
     const rec = {
@@ -1077,7 +1176,7 @@ function generateRecommendations() {
       priority: 'high',
       vaccines: p.age >= 65
         ? 'HD-IIV3（高劑量）、RIV3（重組）或 aIIV3（佐劑）優先；若無法取得，則任何年齡適當的 IIV3'
-        : (p.isImmunocompromised() ? 'IIV3（不活化疫苗）— 禁用 LAIV3' : 'IIV3 或 RIV3；DM 患者建議優先使用不活化疫苗（LAIV3 為 precaution）'),
+        : (p.isImmunocompromised() ? 'IIV3（不活化疫苗）— 禁用 LAIV3' : 'IIV3 或 RIV3 — ADA 建議 DM 患者不應使用 LAIV3（鼻噴）'),
       doses: '每年 1 劑',
       timing: '每年 9-10 月接種，流感季期間皆可',
       rationale: '糖尿病患者感染流感後，高血糖惡化、DKA 及住院風險顯著增加。',
@@ -1086,7 +1185,9 @@ function generateRecommendations() {
     };
     if (p.pregnancy) rec.notes.push('孕婦禁用 LAIV3（鼻噴），請使用 IIV3 不活化疫苗。');
     if (p.isImmunocompromised()) rec.notes.push('免疫抑制病人禁用 LAIV3，僅可使用不活化疫苗。');
-    rec.notes.push('DM 為流感併發症高風險族群，LAIV3 列為 precaution（非禁忌，但建議優先選用 IIV3）。');
+    rec.notes.push('ADA Standards of Care 明確建議 DM 患者不應使用 LAIV3（鼻噴式），應接種不活化或重組疫苗。');
+    const fluIC = getICTimingNote('flu');
+    if (fluIC) rec.notes.push(fluIC);
     recs.push(rec);
   }
 
@@ -1130,7 +1231,7 @@ function generateRecommendations() {
         vaccines: vaccineDetail,
         doses: doseDetail,
         timing: '任何時間皆可接種',
-        rationale: '糖尿病是肺炎鏈球菌感染的獨立危險因子。19-49 歲 DM 為 risk-based indication；50 歲以上為 2024 年起 universal recommendation。',
+        rationale: '糖尿病是肺炎鏈球菌感染的獨立危險因子，DM 患者肺炎鏈球菌感染死亡率高達 50%（ADA）。19-49 歲 DM 為 risk-based indication；50 歲以上為 2024 年起 universal recommendation。',
         schedule_month: 0,
         notes: notes,
       });
@@ -1160,6 +1261,8 @@ function generateRecommendations() {
       };
       if (p.pregnancy) rec.notes.push('孕婦不建議使用 PreHevbrio。');
       if (scdm) rec.notes.push('60 歲以上：依共同臨床決策（SCDM）與病人討論後決定。');
+      if (isDialysis || p.isImmunocompromised()) rec.notes.push('建議完成接種後 1-2 個月檢測 anti-HBs（≥10 mIU/mL 為保護性抗體）。若無反應，可重新接種（ACIP）。');
+      if (p.hasComorbidity('ckd') && !isDialysis) rec.notes.push('ADA 建議 CKD 可能進展至腎衰竭者應及早接種 HepB（ADA Standards of Care Section 11）。');
       recs.push(rec);
     }
   }
@@ -1182,6 +1285,9 @@ function generateRecommendations() {
     if (p.age < 65 && !isIC) rec.notes.push('12-64 歲為 SCDM（共同臨床決策），但 DM 患者風險效益比佳，建議接種。');
     if (p.age >= 65) rec.notes.push('65 歲以上建議 2 劑，間隔 6 個月。');
     if (isIC) rec.notes.push('免疫抑制者建議完成 2 劑 2025-2026 疫苗。');
+    const covidIC = getICTimingNote('covid');
+    if (covidIC) rec.notes.push(covidIC);
+    if (isIC) rec.notes.push('免疫抑制者 VE 約 37-46%（住院預防），雖低於一般人但仍具臨床意義（IDSA 2025）。');
     recs.push(rec);
   }
 
@@ -1271,7 +1377,9 @@ function generateRecommendations() {
         p.age < 75 ? '50-74 歲：符合高風險條件時建議接種（2025 年 6 月 addendum 擴展至 50-59 歲）。' : '',
         '單劑即可，非每年接種。建議每年 8-10 月 RSV 季節前接種。',
         '與其他疫苗同時接種可能降低抗體效價並增加局部/全身副作用。',
-      ],
+        '安全性注意：RSV 疫苗有 GBS（乖乖-巴瑞症候群）信號，IRR 2.1，約每百萬劑 11 例超額（IDSA 2025）。',
+        getICTimingNote('rsv'),
+      ].filter(Boolean),
     });
   }
 
@@ -1607,6 +1715,8 @@ function resetForm() {
     cb.closest('.checkbox-item').classList.remove('checked');
   });
   document.querySelectorAll('.vaccine-history-item select').forEach(s => s.selectedIndex = 0);
+  document.getElementById('icType').value = 'unspecified';
+  document.getElementById('icTypeGroup').style.display = 'none';
   document.getElementById('inputSection').scrollIntoView({ behavior: 'smooth' });
 }
 </script>
