@@ -524,6 +524,13 @@ button:focus-visible, select:focus-visible, input:focus-visible {
       <button class="preset-btn" onclick="applyPreset('t2dm_young')"><span class="preset-icon">🧑</span> T2DM 年輕 Diet (35歲)</button>
       <button class="preset-btn" onclick="applyPreset('t1dm')"><span class="preset-icon">💉</span> T1DM Insulin (28歲)</button>
       <button class="preset-btn" onclick="applyPreset('t2dm_ckd')"><span class="preset-icon">🏥</span> T2DM + CKD (65歲)</button>
+      <button class="preset-btn" onclick="applyPreset('t2dm_sglt2i')"><span class="preset-icon">💊</span> T2DM SGLT2i (60歲)</button>
+      <button class="preset-btn" onclick="applyPreset('t2dm_dialysis')"><span class="preset-icon">🔄</span> T2DM 洗腎 (68歲)</button>
+      <button class="preset-btn" onclick="applyPreset('gdm')"><span class="preset-icon">🤰</span> 妊娠糖尿病 GDM (32歲)</button>
+      <button class="preset-btn" onclick="applyPreset('t2dm_obese')"><span class="preset-icon">⚖️</span> T2DM 肥胖 (45歲)</button>
+      <button class="preset-btn" onclick="applyPreset('t2dm_transplant')"><span class="preset-icon">🫀</span> T2DM 腎移植 (58歲)</button>
+      <button class="preset-btn" onclick="applyPreset('t1dm_compl')"><span class="preset-icon">⚠️</span> T1DM 多重併發 (42歲)</button>
+      <button class="preset-btn" onclick="applyPreset('t2dm_80')"><span class="preset-icon">👵</span> T2DM 高齡 (82歲)</button>
     </div>
   </div>
 
@@ -1057,6 +1064,42 @@ const PRESETS = {
     age: 65, dmType: 'T2DM', dmTreatment: 'insulin_oha', pregnancy: 'no',
     comorbidities: ['ckd', 'cvd', 'neuropathy'], hist: {}
   },
+  t2dm_sglt2i: {
+    age: 60, dmType: 'T2DM', dmTreatment: 'sglt2i', pregnancy: 'no',
+    comorbidities: ['cvd'], hist: {},
+    desc: 'SGLT2i 使用者 — 符合 RSV 50-74 歲適應條件'
+  },
+  t2dm_dialysis: {
+    age: 68, dmType: 'T2DM', dmTreatment: 'insulin', pregnancy: 'no',
+    comorbidities: ['ckd', 'dialysis', 'cvd', 'neuropathy'], hist: {},
+    desc: '洗腎病人 — HepB 需高劑量、肺炎鏈球菌間隔縮短至 8 週'
+  },
+  gdm: {
+    age: 32, dmType: 'GDM', dmTreatment: 'insulin', pregnancy: 'yes',
+    comorbidities: [], hist: {},
+    desc: '妊娠糖尿病 — 注意孕婦禁忌（LAIV、PreHevbrio、HPV）'
+  },
+  t2dm_obese: {
+    age: 45, dmType: 'T2DM', dmTreatment: 'oha', pregnancy: 'no',
+    comorbidities: ['obesity'], hist: {},
+    desc: 'BMI≥40 — 符合 RSV 50-74 歲高風險條件之一'
+  },
+  t2dm_transplant: {
+    age: 58, dmType: 'T2DM', dmTreatment: 'insulin', pregnancy: 'no',
+    comorbidities: ['ckd', 'transplant', 'immunosuppressed'], hist: {},
+    icType: 'sot',
+    desc: '腎移植後 — 免疫抑制，活疫苗禁忌，IDSA 時機指引適用'
+  },
+  t1dm_compl: {
+    age: 42, dmType: 'T1DM', dmTreatment: 'insulin', pregnancy: 'no',
+    comorbidities: ['ckd', 'neuropathy', 'retinopathy', 'cvd'], hist: {},
+    desc: 'T1DM 多重微/大血管併發症 — RSV 符合條件、疫苗反應可能較差'
+  },
+  t2dm_80: {
+    age: 82, dmType: 'T2DM', dmTreatment: 'insulin_oha', pregnancy: 'no',
+    comorbidities: ['cvd', 'ckd', 'neuropathy'], hist: {},
+    desc: '高齡多病 — RSV/Shingrix/肺炎鏈球菌/流感皆為高優先'
+  },
 };
 
 function applyPreset(key) {
@@ -1085,6 +1128,11 @@ function applyPreset(key) {
 
   // Reset all vaccine history to "unknown"
   document.querySelectorAll('.vaccine-history-item select').forEach(s => s.selectedIndex = 0);
+
+  // Set IC type if specified
+  const anyIC = p.comorbidities.some(c => ['immunosuppressed', 'hiv', 'transplant'].includes(c));
+  document.getElementById('icTypeGroup').style.display = anyIC ? 'block' : 'none';
+  $icType.value = p.icType || (anyIC ? 'unspecified' : 'unspecified');
 
   // Flash the form to show it was filled
   $inputSection.style.transition = 'box-shadow 0.3s';
