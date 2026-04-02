@@ -1063,7 +1063,7 @@ const VACCINE_DETAILS = {
 };
 
 // ===== VERSION =====
-const APP_VERSION = 'v3.1.6';
+const APP_VERSION = 'v3.2.0';
 document.title = `糖尿病疫苗接種建議系統 | DM Vaccine Advisor ${APP_VERSION}`;
 
 // ===== CACHED DOM REFERENCES =====
@@ -1726,6 +1726,26 @@ function renderResults(patient, recs) {
   const treatmentNames = {
     diet: '飲食控制', oha: '口服藥', sglt2i: 'SGLT2i', insulin: '胰島素', insulin_oha: '胰島素+口服藥'
   };
+  const histLabels = {
+    flu: { name: '流感', unknown: '不確定', current: '本季已接種', last_year: '去年有打', never: '從未' },
+    pneumo: { name: '肺炎鏈球菌', unknown: '不確定', pcv20: '已完成 PCV20/21', pcv13_ppsv23: '已完成 PCV13+PPSV23', pcv15: '已打 PCV15', ppsv23_only: '僅 PPSV23', never: '從未' },
+    hepb: { name: 'B肝', unknown: '不確定', complete: '已完成', partial: '部分', never: '從未' },
+    covid: { name: 'COVID-19', unknown: '不確定', current: '已打最新', outdated: '非最新', never: '從未' },
+    zoster: { name: '帶狀疱疹', unknown: '不確定', complete: '已完成2劑', partial: '已打1劑', zvl_only: '僅Zostavax', never: '從未' },
+    tdap: { name: 'Tdap', unknown: '不確定', recent: '近10年有', outdated: '超過10年', never: '從未' },
+    rsv: { name: 'RSV', unknown: '不確定', complete: '已接種', never: '從未' },
+    hpv: { name: 'HPV', unknown: '不確定', complete: '已完成', partial: '部分', never: '從未' },
+  };
+  const histSummary = Object.entries(patient.hist).map(([key, val]) => {
+    const info = histLabels[key];
+    if (!info) return '';
+    const label = info[val] || val;
+    const isDone = ['current', 'complete', 'pcv20', 'pcv13_ppsv23', 'recent'].includes(val);
+    const isNever = val === 'never';
+    const color = isDone ? 'var(--success)' : isNever ? 'var(--danger)' : 'var(--text-secondary)';
+    return `<span style="display:inline-block;margin:2px 4px 2px 0;padding:2px 8px;border-radius:4px;font-size:12px;background:${isDone ? 'var(--success-light)' : isNever ? 'var(--danger-light)' : '#f1f3f4'};color:${color};">${info.name}: ${label}</span>`;
+  }).join('');
+
   summaryEl.style.display = 'block';
   summaryEl.innerHTML = `
     <div class="card-title"><span class="icon">👤</span> 病人摘要 Patient Summary</div>
@@ -1735,6 +1755,10 @@ function renderResults(patient, recs) {
       <strong>治療：</strong>${treatmentNames[patient.dmTreatment] || '未填'} |
       <strong>懷孕：</strong>${patient.pregnancy ? '是' : '否'}<br>
       <strong>共病：</strong>${patient.comorbidities.length ? patient.comorbidities.map(c => comorbidityNames[c]).join('、') : '無'}
+    </div>
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
+      <strong style="font-size:13px;">過去疫苗接種紀錄：</strong><br>
+      <div style="margin-top:4px;line-height:1.8;">${histSummary}</div>
     </div>
   `;
 
