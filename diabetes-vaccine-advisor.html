@@ -1047,7 +1047,7 @@ const VACCINE_DETAILS = {
 };
 
 // ===== VERSION =====
-const APP_VERSION = 'v3.1';
+const APP_VERSION = 'v3.1.2';
 document.title = `糖尿病疫苗接種建議系統 | DM Vaccine Advisor ${APP_VERSION}`;
 
 // ===== CACHED DOM REFERENCES =====
@@ -1634,8 +1634,15 @@ function getPersonalizedAdvice(patient, vaccineKey) {
   }
 
   if (vaccineKey === 'Hepatitis B') {
-    if (a < 60) tips.push(`病人 ${a} 歲（<60），為 universal recommendation。推薦 Heplisav-B（僅需 2 劑，方便性最高）。`);
-    else tips.push(`病人 ${a} 歲（≥60），為 SDM。使用${treat}治療，建議與病人討論 HepB 接種效益。`);
+    if (a < 60) {
+      if (patient.pregnancy) {
+        tips.push(`病人 ${a} 歲孕婦（<60），為 universal recommendation。<strong>孕期禁用 PreHevbrio</strong>（缺乏安全性資料）。建議使用 Engerix-B 或 Recombivax HB（3 劑，安全性資料最充足）。Heplisav-B 孕期安全性資料有限，可考慮延至產後使用。`);
+      } else {
+        tips.push(`病人 ${a} 歲（<60），為 universal recommendation。推薦 Heplisav-B（僅需 2 劑，方便性最高）。`);
+      }
+    } else {
+      tips.push(`病人 ${a} 歲（≥60），為 SDM。使用${treat}治療，建議與病人討論 HepB 接種效益。`);
+    }
     if (patient.hasComorbidity('dialysis')) tips.push('透析病人需使用<strong>高劑量</strong>（Recombivax HB 40mcg 或 Engerix-B 雙倍）。完成後 1-2 個月檢測 anti-HBs。');
     if (patient.hasComorbidity('ckd') && !patient.hasComorbidity('dialysis')) tips.push('CKD 患者建議及早接種，避免等到進展至透析階段（ADA Section 11）。');
   }
@@ -1643,13 +1650,19 @@ function getPersonalizedAdvice(patient, vaccineKey) {
   if (vaccineKey === 'COVID-19') {
     if (a >= 65) tips.push(`病人 ${a} 歲（≥65），建議接種 <strong>2 劑</strong> 2025-2026 疫苗，間隔 6 個月。`);
     else tips.push(`病人 ${a} 歲（<65），為 SDM。但 DM 為 COVID-19 重症獨立危險因子（住院 6x、死亡 12x），風險效益比佳，<strong>建議接種</strong>。`);
+    if (patient.pregnancy) tips.push('孕婦可安全接種 COVID-19 mRNA 或蛋白次單位疫苗。孕期感染 COVID-19 重症風險更高，建議接種。');
     if (patient.isImmunocompromised()) tips.push('免疫抑制者建議完成 2 劑，且 VE 約 37-46%（低於一般人但仍有意義）。');
   }
 
   if (vaccineKey === 'Zoster') {
     const dmHZRisk = patient.hasDMComplications() || patient.hasComorbidity('cvd');
-    if (a >= 50) tips.push(`病人 ${a} 歲（≥50），為常規建議。DM 患者帶狀疱疹 RR 1.24-2.1，建議接種 Shingrix 2 劑。`);
-    else if (dmHZRisk) tips.push(`病人 ${a} 歲（<50），但合併 DM 併發症/CVD。台灣 2026 T2DM 指引建議此族群即可接種 RZV。30-44 歲 DM 患者 HZ 風險 RR 高達 3.7。`);
+    if (patient.pregnancy) {
+      tips.push(`孕婦建議<strong>延至產後</strong>再接種 Shingrix。`);
+    } else if (a >= 50) {
+      tips.push(`病人 ${a} 歲（≥50），為常規建議。DM 患者帶狀疱疹 RR 1.24-2.1，建議接種 Shingrix 2 劑。`);
+    } else if (dmHZRisk) {
+      tips.push(`病人 ${a} 歲（<50），但合併 DM 併發症/CVD。台灣 2026 T2DM 指引建議此族群即可接種 RZV。30-44 歲 DM 患者 HZ 風險 RR 高達 3.7。`);
+    }
     if (patient.isImmunocompromised()) tips.push('Shingrix 為非活疫苗，免疫抑制者可安全接種。');
   }
 
@@ -1667,8 +1680,13 @@ function getPersonalizedAdvice(patient, vaccineKey) {
   }
 
   if (vaccineKey === 'HPV') {
-    if (a <= 26) tips.push(`病人 ${a} 歲（≤26），為 HPV 常規建議接種年齡。`);
-    else tips.push(`病人 ${a} 歲（27-45），為 SDM。疫苗對未曾暴露的 HPV 型別仍有保護力，效益隨年齡遞減。`);
+    if (patient.pregnancy) {
+      tips.push(`孕婦<strong>不建議接種 HPV 疫苗</strong>，建議延至產後再開始或補完接種系列。`);
+    } else if (a <= 26) {
+      tips.push(`病人 ${a} 歲（≤26），為 HPV 常規建議接種年齡。`);
+    } else {
+      tips.push(`病人 ${a} 歲（27-45），為 SDM。疫苗對未曾暴露的 HPV 型別仍有保護力，效益隨年齡遞減。`);
+    }
   }
 
   if (!tips.length) return '';
