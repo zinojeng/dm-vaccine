@@ -761,7 +761,7 @@ button:focus-visible, select:focus-visible, input:focus-visible {
     <!-- Compact feedback -->
     <div style="margin-top:12px;display:flex;gap:8px;align-items:center;" class="no-print">
       <input type="text" id="fbMsg" placeholder="意見回饋 Feedback..." style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;">
-      <button onclick="sendFB()" style="padding:8px 16px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit;">送出</button>
+      <button id="fbBtn" onclick="sendFB()" style="padding:8px 16px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit;">送出</button>
     </div>
     <div id="fbOk" style="display:none;font-size:12px;color:var(--success);margin-top:4px;"></div>
   </div>
@@ -1063,7 +1063,7 @@ const VACCINE_DETAILS = {
 };
 
 // ===== VERSION =====
-const APP_VERSION = 'v3.1.5';
+const APP_VERSION = 'v3.1.6';
 document.title = `糖尿病疫苗接種建議系統 | DM Vaccine Advisor ${APP_VERSION}`;
 
 // ===== CACHED DOM REFERENCES =====
@@ -1970,18 +1970,55 @@ function resetForm() {
   $inputSection.scrollIntoView({ behavior: 'smooth' });
 }
 
-// ===== COMPACT FEEDBACK =====
+// ===== COMPACT FEEDBACK (via formsubmit.co — no backend needed) =====
 function sendFB() {
-  const msg = document.getElementById('fbMsg').value.trim();
+  const msgEl = document.getElementById('fbMsg');
+  const btnEl = document.getElementById('fbBtn');
+  const okEl = document.getElementById('fbOk');
+  const msg = msgEl.value.trim();
   if (!msg) return;
-  const subject = encodeURIComponent(`[DM Vaccine Advisor ${APP_VERSION}] 意見回饋`);
-  const body = encodeURIComponent(`${msg}\n\n---\n${APP_VERSION} | ${new Date().toLocaleString('zh-TW')}`);
-  window.location.href = `mailto:zinojeng@gmail.com?subject=${subject}&body=${body}`;
-  document.getElementById('fbMsg').value = '';
-  const ok = document.getElementById('fbOk');
-  ok.textContent = '已開啟郵件，請確認送出。感謝！';
-  ok.style.display = 'block';
-  setTimeout(() => { ok.style.display = 'none'; }, 4000);
+
+  btnEl.disabled = true;
+  btnEl.textContent = '送出中...';
+
+  fetch('https://formsubmit.co/ajax/zinojeng@gmail.com', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({
+      subject: `[DM Vaccine Advisor ${APP_VERSION}] 意見回饋`,
+      message: msg,
+      _template: 'table',
+      version: APP_VERSION,
+      time: new Date().toLocaleString('zh-TW'),
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      msgEl.value = '';
+      okEl.textContent = '已送出，感謝您的回饋！';
+      okEl.style.color = 'var(--success)';
+    } else {
+      okEl.textContent = '送出失敗，請稍後再試。';
+      okEl.style.color = 'var(--danger)';
+    }
+    okEl.style.display = 'block';
+    setTimeout(() => { okEl.style.display = 'none'; }, 4000);
+  })
+  .catch(() => {
+    // Fallback to mailto if network fails
+    const subject = encodeURIComponent(`[DM Vaccine Advisor ${APP_VERSION}] 意見回饋`);
+    const body = encodeURIComponent(`${msg}\n\n---\n${APP_VERSION} | ${new Date().toLocaleString('zh-TW')}`);
+    window.location.href = `mailto:zinojeng@gmail.com?subject=${subject}&body=${body}`;
+    okEl.textContent = '已開啟郵件程式（網路不可用時備用）';
+    okEl.style.color = 'var(--warning)';
+    okEl.style.display = 'block';
+    setTimeout(() => { okEl.style.display = 'none'; }, 4000);
+  })
+  .finally(() => {
+    btnEl.disabled = false;
+    btnEl.textContent = '送出';
+  });
 }
 // Allow Enter key to send
 document.getElementById('fbMsg').addEventListener('keydown', (e) => {
