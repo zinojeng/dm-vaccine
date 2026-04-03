@@ -1524,8 +1524,8 @@ function generateRecommendations() {
     });
   }
 
-  // === 8. HPV ===
-  if (p.hist.hpv !== 'complete' && p.age <= 45) {
+  // === 8. HPV ===（孕婦不建議，不列出）
+  if (p.hist.hpv !== 'complete' && p.age <= 45 && !p.pregnancy) {
     const isRoutine = p.age <= 26;
     const isSDM = p.age >= 27 && p.age <= 45;
     if (isRoutine || isSDM) {
@@ -1547,7 +1547,6 @@ function generateRecommendations() {
         schedule_month: 0,
         notes: [],
       };
-      if (p.pregnancy) rec.notes.push('孕婦不建議接種 HPV 疫苗，建議延至產後。');
       if (isSDM) rec.notes.push('27-45 歲：疫苗效益隨年齡遞減，應與病人討論後決定。');
       recs.push(rec);
     }
