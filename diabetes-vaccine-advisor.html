@@ -587,14 +587,23 @@ button:focus-visible, select:focus-visible, input:focus-visible {
   <div class="card no-print">
     <div class="card-title"><span class="icon">2</span> 共病 Comorbidities</div>
     <div class="checkbox-grid" id="comorbidities">
+      <label class="checkbox-item" data-value="obesity">
+        <input type="checkbox" value="obesity"> 肥胖 BMI&ge;40
+      </label>
+      <label class="checkbox-item" data-value="cvd">
+        <input type="checkbox" value="cvd"> 心血管疾病 CVD
+      </label>
       <label class="checkbox-item" data-value="ckd">
         <input type="checkbox" value="ckd"> 慢性腎病 CKD
       </label>
       <label class="checkbox-item" data-value="dialysis">
         <input type="checkbox" value="dialysis"> 洗腎 Dialysis
       </label>
-      <label class="checkbox-item" data-value="cvd">
-        <input type="checkbox" value="cvd"> 心血管疾病 CVD
+      <label class="checkbox-item" data-value="neuropathy">
+        <input type="checkbox" value="neuropathy"> 神經病變 Neuropathy
+      </label>
+      <label class="checkbox-item" data-value="retinopathy">
+        <input type="checkbox" value="retinopathy"> 視網膜病變 Retinopathy
       </label>
       <label class="checkbox-item" data-value="cld">
         <input type="checkbox" value="cld"> 慢性肝病 CLD
@@ -605,23 +614,14 @@ button:focus-visible, select:focus-visible, input:focus-visible {
       <label class="checkbox-item" data-value="immunosuppressed">
         <input type="checkbox" value="immunosuppressed"> 免疫抑制 Immunosuppressed
       </label>
-      <label class="checkbox-item" data-value="hiv">
-        <input type="checkbox" value="hiv"> HIV
-      </label>
-      <label class="checkbox-item" data-value="obesity">
-        <input type="checkbox" value="obesity"> 肥胖 BMI&ge;40
-      </label>
-      <label class="checkbox-item" data-value="neuropathy">
-        <input type="checkbox" value="neuropathy"> 神經病變 Neuropathy
-      </label>
-      <label class="checkbox-item" data-value="retinopathy">
-        <input type="checkbox" value="retinopathy"> 視網膜病變 Retinopathy
+      <label class="checkbox-item" data-value="transplant">
+        <input type="checkbox" value="transplant"> 器官移植 Transplant
       </label>
       <label class="checkbox-item" data-value="asplenia">
         <input type="checkbox" value="asplenia"> 無脾 Asplenia
       </label>
-      <label class="checkbox-item" data-value="transplant">
-        <input type="checkbox" value="transplant"> 器官移植 Transplant
+      <label class="checkbox-item" data-value="hiv">
+        <input type="checkbox" value="hiv"> HIV
       </label>
     </div>
 
@@ -1062,6 +1062,9 @@ const VACCINE_DETAILS = {
     </ul>`,
 };
 
+const VACCINE_DETAIL_KEYS = Object.keys(VACCINE_DETAILS);
+let _activePatientForDetails = null;
+
 // ===== VERSION =====
 const APP_VERSION = 'v3.2.1';
 document.title = `糖尿病疫苗接種建議系統 | DM Vaccine Advisor ${APP_VERSION}`;
@@ -1388,7 +1391,7 @@ function generateRecommendations() {
           ? '補完剩餘劑次（無需重新開始）'
           : (isDialysis ? '特殊劑量全程系列' : 'Heplisav-B: 0, 4 週共 2 劑；或傳統: 0, 1, 6 月共 3 劑'),
         timing: '儘快開始',
-        rationale: '糖尿病患者因血糖監測及胰島素注射有經皮暴露風險，' + (scdm ? '60 歲以上為 SDM（共同臨床決策）建議。' : '59 歲以下為常規建議。'),
+        rationale: `糖尿病患者因血糖監測及胰島素注射有經皮暴露風險，${scdm ? '60 歲以上為 SDM（共同臨床決策）建議。' : '59 歲以下為常規建議。'}`,
         schedule_month: 0,
         notes: [],
       };
@@ -1509,7 +1512,7 @@ function generateRecommendations() {
       vaccines: '<span class="preferred">Arexvy（佐劑型，VE 82.6%，DM 優先推薦）</span>、Abrysvo（VE 65.1%）或 mResvia（mRNA）',
       doses: '單劑（非每年接種）',
       timing: '建議每年 8-10 月（RSV 季節前）接種',
-      rationale: 'DM 患者 RSV 肺炎風險為 2.7 倍；台灣 50+ 住院 RSV 患者 33.7% 有 DM。符合條件：' + qualifiers.join('、'),
+      rationale: `DM 患者 RSV 肺炎風險為 2.7 倍；台灣 50+ 住院 RSV 患者 33.7% 有 DM。符合條件：${qualifiers.join('、')}`,
       schedule_month: 0,
       notes: [
         p.age < 75 ? '50-74 歲：符合高風險條件時建議接種（2025 年 6 月 addendum 擴展至 50-59 歲）。' : '',
@@ -1572,7 +1575,7 @@ function generateRecommendations() {
       vaccines: 'MenACWY (Menactra 或 Menveo)',
       doses: '2 劑系列（間隔至少 8 週），之後每 5 年追加',
       timing: '儘快開始',
-      rationale: (p.hasComorbidity('asplenia') ? '無脾者' : 'HIV 感染者') + '為腦膜炎高風險族群。',
+      rationale: `${p.hasComorbidity('asplenia') ? '無脾者' : 'HIV 感染者'}為腦膜炎高風險族群。`,
       schedule_month: 0,
       notes: [],
     });
@@ -1607,12 +1610,12 @@ function generateRecommendations() {
     'Pneumococcal': 1,    // DM 特有適應症，幾乎都需要
     'Hepatitis B': 2,     // DM 特有適應症
     'COVID-19': 3,        // 年度更新，高度普及
-    'Tdap': 4,            // 常規追加，DM 足部風險
-    'Zoster': 5,          // 50+ 常規
-    'RSV': 6,             // 較新疫苗，條件性
-    'HPV': 7,             // 年輕族群
-    'Hepatitis A': 8,     // 僅 CLD 共病
-    'MenACWY': 9,         // 僅特殊共病
+    'Zoster': 4,          // 50+ 常規
+    'RSV': 5,             // 較新疫苗，條件性
+    'HPV': 6,             // 年輕族群
+    'Hepatitis A': 7,     // 僅 CLD 共病
+    'MenACWY': 8,         // 僅特殊共病
+    'Tdap': 9,            // 常規追加，DM 足部風險
   };
   recs.sort((a, b) => {
     const pDiff = (priorityOrder[a.priority] ?? 99) - (priorityOrder[b.priority] ?? 99);
@@ -1735,7 +1738,15 @@ function getPersonalizedAdvice(patient, vaccineKey) {
   </div>`;
 }
 
+function getDetailKeyByRecommendationName(name) {
+  for (const key of VACCINE_DETAIL_KEYS) {
+    if (name.includes(key)) return key;
+  }
+  return '';
+}
+
 function renderResults(patient, recs) {
+  _activePatientForDetails = patient;
   $results.style.display = 'block';
   $vaccineCount.textContent = recs.filter(r => !r.isWarning).length;
 
@@ -1795,14 +1806,15 @@ function renderResults(patient, recs) {
     card.className = `vaccine-card priority-${r.priority} fade-in`;
     card.style.animationDelay = `${i * 0.05}s`;
 
-    const detailKey = Object.keys(VACCINE_DETAILS).find(k => r.name.includes(k));
-    const detailHTML = detailKey ? VACCINE_DETAILS[detailKey] : '';
-    const personalAdvice = detailKey ? getPersonalizedAdvice(patient, detailKey) : '';
-    const hasDetail = !!(detailHTML || personalAdvice);
+    const detailKey = getDetailKeyByRecommendationName(r.name);
+    const hasDetail = Boolean(detailKey);
     const filteredNotes = r.notes ? r.notes.filter(Boolean) : [];
+    const detailMarkup = hasDetail
+      ? `<div class="expand-hint" data-toggle-detail="1">點擊展開完整說明 ▼</div><div class="vaccine-card-detail" data-detail-key="${detailKey}" data-detail-loaded="0"></div>`
+      : '';
 
     card.innerHTML = `
-      <div class="vaccine-card-header" ${hasDetail ? 'onclick="toggleCard(this)" role="button" aria-expanded="false" tabindex="0"' : 'tabindex="-1"'}>
+      <div class="vaccine-card-header" ${hasDetail ? 'role="button" aria-expanded="false" tabindex="0" data-toggle-detail="1"' : 'tabindex="-1"'}>
         <h3>${r.isWarning ? '' : '💉 '}${r.name}${hasDetail ? '<span class="expand-icon">▼</span>' : ''}</h3>
         <span class="priority-badge ${r.priority}">${priorityLabel[r.priority]}</span>
       </div>
@@ -1814,13 +1826,12 @@ function renderResults(patient, recs) {
         ${filteredNotes.map(n => `<div class="note">📌 ${glossarize(n)}</div>`).join('')}
         ${r.contraindications ? r.contraindications.map(c => `<div class="contraindication">⛔ ${glossarize(c)}</div>`).join('') : ''}
       </div>
-      ${hasDetail ? `<div class="expand-hint" onclick="toggleCard(this.previousElementSibling.previousElementSibling)">點擊展開完整說明 ▼</div><div class="vaccine-card-detail">${personalAdvice}${glossarize(detailHTML)}</div>` : ''}
+      ${detailMarkup}
     `;
     frag.appendChild(card);
   });
 
-  listEl.innerHTML = '';
-  listEl.appendChild(frag);
+  listEl.replaceChildren(frag);
 
   // Timeline
   buildTimeline(recs, patient);
@@ -1938,8 +1949,27 @@ function copyText() {
 }
 
 // ===== CARD EXPAND/COLLAPSE =====
+function ensureCardDetailLoaded(card) {
+  const detailEl = card.querySelector('.vaccine-card-detail[data-detail-loaded="0"]');
+  if (!detailEl) return;
+  const detailKey = detailEl.dataset.detailKey;
+  const detailHTML = detailKey ? VACCINE_DETAILS[detailKey] : '';
+  if (!detailHTML) {
+    detailEl.dataset.detailLoaded = '1';
+    return;
+  }
+  const personalAdvice = (_activePatientForDetails && detailKey)
+    ? getPersonalizedAdvice(_activePatientForDetails, detailKey)
+    : '';
+  detailEl.innerHTML = `${personalAdvice}${glossarize(detailHTML)}`;
+  detailEl.dataset.detailLoaded = '1';
+}
+
 function toggleCard(headerEl) {
+  if (!headerEl) return;
   const card = headerEl.closest('.vaccine-card');
+  if (!card) return;
+  if (!card.classList.contains('expanded')) ensureCardDetailLoaded(card);
   const isExpanded = card.classList.toggle('expanded');
   headerEl.setAttribute('aria-expanded', isExpanded);
   // Update hint text
@@ -1947,9 +1977,24 @@ function toggleCard(headerEl) {
   if (hint) hint.textContent = isExpanded ? '收合詳細說明 ▲' : '點擊展開完整說明 ▼';
 }
 
+// Delegated click toggle for dynamic card headers / hints
+document.addEventListener('click', (e) => {
+  const headerEl = e.target.closest('.vaccine-card-header[role="button"]');
+  if (headerEl) {
+    toggleCard(headerEl);
+    return;
+  }
+  const hintEl = e.target.closest('.expand-hint[data-toggle-detail]');
+  if (!hintEl) return;
+  const card = hintEl.closest('.vaccine-card');
+  if (!card) return;
+  const header = card.querySelector('.vaccine-card-header[role="button"]');
+  if (header) toggleCard(header);
+});
+
 // Allow keyboard (Enter/Space) to toggle
 document.addEventListener('keydown', (e) => {
-  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('vaccine-card-header')) {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.vaccine-card-header[role="button"]')) {
     e.preventDefault();
     toggleCard(e.target);
   }
@@ -1962,15 +2007,38 @@ const _glossaryRegex = (() => {
   const escaped = terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   return new RegExp(`(?<![\\w/\\->])(${escaped.join('|')})(?![\\w<])`, 'g');
 })();
+const _glossaryCache = new Map();
+const _GLOSSARY_CACHE_LIMIT = 512;
+const _GLOSSARY_MARKER = 'class="glossary-term"';
+
+function setGlossaryCache(key, value) {
+  if (_glossaryCache.size >= _GLOSSARY_CACHE_LIMIT) {
+    const oldest = _glossaryCache.keys().next().value;
+    _glossaryCache.delete(oldest);
+  }
+  _glossaryCache.set(key, value);
+}
 
 function glossarize(text) {
-  if (!text) return text;
+  if (!text || typeof text !== 'string') return text;
+  if (text.includes(_GLOSSARY_MARKER)) return text;
+  const cached = _glossaryCache.get(text);
+  if (cached !== undefined) return cached;
+
+  _glossaryRegex.lastIndex = 0;
+  if (!_glossaryRegex.test(text)) {
+    setGlossaryCache(text, text);
+    return text;
+  }
+  _glossaryRegex.lastIndex = 0;
   const seen = new Set();
-  return text.replace(_glossaryRegex, (match) => {
+  const result = text.replace(_glossaryRegex, (match) => {
     if (seen.has(match)) return match;
     seen.add(match);
     return `<span class="glossary-term" data-term="${match}">${match}</span>`;
   });
+  setGlossaryCache(text, result);
+  return result;
 }
 
 // Glossary popup show/hide
