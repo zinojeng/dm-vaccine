@@ -529,6 +529,7 @@ button:focus-visible, select:focus-visible, input:focus-visible {
   <div class="card no-print">
     <div class="card-title"><span class="icon">⚡</span> 快速預設 Quick Presets</div>
     <div class="preset-bar">
+      <button class="preset-btn" onclick="applyPreset('predm')"><span class="preset-icon">🩸</span> Pre-DM (50歲)</button>
       <button class="preset-btn" onclick="applyPreset('t2dm_mid')"><span class="preset-icon">👤</span> T2DM 中年 OHA (55歲)</button>
       <button class="preset-btn" onclick="applyPreset('t2dm_elder')"><span class="preset-icon">👴</span> T2DM 年長 Insulin (72歲)</button>
       <button class="preset-btn" onclick="applyPreset('t2dm_young')"><span class="preset-icon">🧑</span> T2DM 年輕 Diet (35歲)</button>
@@ -556,6 +557,7 @@ button:focus-visible, select:focus-visible, input:focus-visible {
     <div class="form-group">
       <label>糖尿病類型 DM Type</label>
       <select id="dmType">
+        <option value="PreDM">糖尿病前期 Pre-DM</option>
         <option value="T2DM" selected>第二型糖尿病 T2DM</option>
         <option value="T1DM">第一型糖尿病 T1DM</option>
         <option value="GDM">妊娠糖尿病 GDM</option>
@@ -587,8 +589,10 @@ button:focus-visible, select:focus-visible, input:focus-visible {
   <div class="card no-print">
     <div class="card-title"><span class="icon">2</span> 共病 Comorbidities</div>
     <div class="checkbox-grid" id="comorbidities">
-      <label class="checkbox-item" data-value="obesity">
-        <input type="checkbox" value="obesity"> 肥胖 BMI&ge;40
+      <label class="checkbox-item checkbox-item-bmi" data-value="obesity">
+        <input type="checkbox" value="obesity" id="obesityCheckbox"> BMI
+        <input type="number" id="bmiInput" min="15" max="70" step="0.1" placeholder="kg/m²" style="width:70px;margin-left:4px;padding:2px 4px;border:1px solid #ccc;border-radius:4px;font-size:0.85em;">
+        <span id="bmiLabel" style="margin-left:4px;font-size:0.8em;color:#666;"></span>
       </label>
       <label class="checkbox-item" data-value="cvd">
         <input type="checkbox" value="cvd"> 心血管疾病 CVD
@@ -1008,7 +1012,7 @@ const VACCINE_DETAILS = {
     <ul>
       <li>DM 合併末端器官損傷（CKD、神經病變、視網膜病變）</li>
       <li>DM 需使用胰島素或 SGLT2i 治療</li>
-      <li>合併其他高風險條件（CVD、慢性肺病、肥胖 BMI≥40、免疫抑制、透析）</li>
+      <li>合併其他高風險條件（CVD、慢性肺病、肥胖 BMI≥30、免疫抑制、透析）</li>
     </ul>
     <h4>疫苗選項與品牌比較</h4>
     <ul>
@@ -1115,7 +1119,33 @@ document.getElementById('comorbidities').addEventListener('change', (e) => {
   }
 });
 
+// BMI input → auto-classify (Taiwan cutoffs) & toggle obesity checkbox
+const $bmiInput = document.getElementById('bmiInput');
+const $bmiLabel = document.getElementById('bmiLabel');
+const $obesityCheckbox = document.getElementById('obesityCheckbox');
+$bmiInput.addEventListener('input', () => {
+  const bmi = parseFloat($bmiInput.value);
+  if (!bmi || bmi < 10) { $bmiLabel.textContent = ''; return; }
+  let label = '', isObese = false;
+  if (bmi < 18.5) label = '過輕';
+  else if (bmi < 24) label = '正常';
+  else if (bmi < 27) label = '過重';
+  else if (bmi < 30) { label = '輕度肥胖'; isObese = true; }
+  else if (bmi < 35) { label = '中度肥胖'; isObese = true; }
+  else { label = '重度肥胖'; isObese = true; }
+  $bmiLabel.textContent = label;
+  $bmiLabel.style.color = isObese ? '#e74c3c' : '#666';
+  $obesityCheckbox.checked = isObese;
+  $obesityCheckbox.closest('.checkbox-item').classList.toggle('checked', isObese);
+});
+
 const PRESETS = {
+  predm: {
+    age: 50, dmType: 'PreDM', dmTreatment: 'diet', pregnancy: 'no',
+    comorbidities: ['obesity'], hist: {},
+    bmi: 28,
+    desc: 'Pre-DM — HbA1c 5.7-6.4%，免疫功能已開始下降'
+  },
   t2dm_mid: {
     age: 55, dmType: 'T2DM', dmTreatment: 'oha', pregnancy: 'no',
     comorbidities: [], hist: {}
@@ -1154,7 +1184,8 @@ const PRESETS = {
   t2dm_obese: {
     age: 45, dmType: 'T2DM', dmTreatment: 'oha', pregnancy: 'no',
     comorbidities: ['obesity'], hist: {},
-    desc: 'BMI≥40 — 符合 RSV 50-74 歲高風險條件之一'
+    bmi: 32,
+    desc: 'BMI 32（台灣中度肥胖）— 符合 RSV 50-74 歲高風險條件之一'
   },
   t2dm_transplant: {
     age: 58, dmType: 'T2DM', dmTreatment: 'insulin', pregnancy: 'no',
@@ -1198,6 +1229,10 @@ function applyPreset(key) {
     if (cb) { cb.checked = true; cb.closest('.checkbox-item').classList.add('checked'); }
   });
 
+  // Set BMI if specified
+  $bmiInput.value = p.bmi || '';
+  $bmiInput.dispatchEvent(new Event('input'));
+
   // Reset all vaccine history to "unknown"
   document.querySelectorAll('.vaccine-history-item select').forEach(s => s.selectedIndex = 0);
 
@@ -1221,12 +1256,13 @@ function getInputs() {
   const dmTreatment = $dmTreatment.value;
   const pregnancy = $pregnancy.value === 'yes';
 
+  const bmi = parseFloat($bmiInput.value) || null;
   const comorbidities = [];
   document.querySelectorAll('#comorbidities input:checked').forEach(cb => comorbidities.push(cb.value));
   const icType = $icType.value;
 
   return {
-    age, dmType, dmTreatment, pregnancy, comorbidities, icType,
+    age, dmType, dmTreatment, pregnancy, bmi, comorbidities, icType,
     hist: {
       flu: document.getElementById('hist_flu').value,
       pneumo: document.getElementById('hist_pneumo').value,
@@ -1503,7 +1539,7 @@ function generateRecommendations() {
     if (p.usesInsulinOrSGLT2i()) qualifiers.push('使用胰島素或 SGLT2i 治療');
     if (p.hasComorbidity('cvd')) qualifiers.push('心血管疾病');
     if (p.hasComorbidity('lung')) qualifiers.push('慢性肺病');
-    if (p.hasComorbidity('obesity')) qualifiers.push('BMI≥40');
+    if (p.hasComorbidity('obesity')) qualifiers.push(p.bmi ? `BMI ${p.bmi}（肥胖）` : '肥胖');
     if (p.hasComorbidity('dialysis')) qualifiers.push('洗腎/ESRD');
 
     recs.push({
@@ -1597,6 +1633,24 @@ function generateRecommendations() {
       rationale: '嚴重免疫抑制者禁用活疫苗。MMR 及 Varicella 需 CD4 ≥ 200 (HIV) 或非嚴重免疫抑制狀態。',
       schedule_month: -1,
       notes: [],
+      isWarning: true,
+    });
+  }
+
+  // Pre-DM: add clinical note
+  if (p.dmType === 'PreDM') {
+    recs.push({
+      name: '⚠ Pre-DM 疫苗接種提醒',
+      priority: 'info',
+      vaccines: '',
+      doses: '',
+      timing: '',
+      rationale: 'Pre-DM（HbA1c 5.7-6.4%）已出現免疫功能變化：NK cell 活性下降、病毒感染時反應異常且恢復較慢（Stanford 2019）。HbA1c ≥ 6.5% 為疫苗抗體反應降低之獨立預測因子。建議比照糖尿病患者積極接種疫苗。',
+      schedule_month: -1,
+      notes: [
+        '研究顯示 pre-DM 階段免疫及微生物相已出現異常，不需等到確診 DM 才開始疫苗保護。',
+        '良好的血糖控制可改善疫苗抗體反應，建議接種前優化血糖管理。',
+      ],
       isWarning: true,
     });
   }
@@ -1753,7 +1807,7 @@ function renderResults(patient, recs) {
   const summaryEl = $patientSummary;
   const comorbidityNames = {
     ckd: 'CKD', dialysis: '洗腎', cvd: 'CVD', cld: '慢性肝病', lung: '慢性肺病',
-    immunosuppressed: '免疫抑制', hiv: 'HIV', obesity: 'BMI≥40',
+    immunosuppressed: '免疫抑制', hiv: 'HIV', obesity: '肥胖',
     neuropathy: '神經病變', retinopathy: '視網膜病變', asplenia: '無脾', transplant: '器官移植'
   };
   const treatmentNames = {
@@ -1786,6 +1840,7 @@ function renderResults(patient, recs) {
       <strong>年齡：</strong>${patient.age} 歲 |
       <strong>DM Type：</strong>${patient.dmType} |
       <strong>治療：</strong>${treatmentNames[patient.dmTreatment] || '未填'} |
+      ${patient.bmi ? `<strong>BMI：</strong>${patient.bmi} |` : ''}
       <strong>懷孕：</strong>${patient.pregnancy ? '是' : '否'}<br>
       <strong>共病：</strong>${patient.comorbidities.length ? patient.comorbidities.map(c => comorbidityNames[c]).join('、') : '無'}
     </div>
@@ -2078,6 +2133,8 @@ function resetForm() {
   $dmType.value = 'T2DM';
   $dmTreatment.value = 'oha';
   $pregnancy.value = 'no';
+  $bmiInput.value = '';
+  $bmiLabel.textContent = '';
   document.querySelectorAll('#comorbidities input:checked').forEach(cb => {
     cb.checked = false;
     cb.closest('.checkbox-item').classList.remove('checked');
