@@ -589,18 +589,8 @@ button:focus-visible, select:focus-visible, input:focus-visible {
   <div class="card no-print">
     <div class="card-title"><span class="icon">2</span> 共病 Comorbidities</div>
     <div class="checkbox-grid" id="comorbidities">
-      <label class="checkbox-item" data-value="obesity" style="flex-basis:100%;max-width:100%;">
-        <input type="checkbox" value="obesity" id="obesityCheckbox" style="display:none;">
-        BMI
-        <select id="bmiSelect" style="margin-left:6px;padding:2px 4px;border:1px solid #ccc;border-radius:4px;font-size:0.85em;">
-          <option value="">未填</option>
-          <option value="underweight">&lt;18.5 過輕</option>
-          <option value="normal">18.5-23.9 正常</option>
-          <option value="overweight">24-26.9 過重</option>
-          <option value="obese1">27-29.9 輕度肥胖</option>
-          <option value="obese2">30-34.9 中度肥胖</option>
-          <option value="obese3">≥35 重度肥胖</option>
-        </select>
+      <label class="checkbox-item" data-value="obesity">
+        <input type="checkbox" value="obesity"> 肥胖 BMI&ge;27
       </label>
       <label class="checkbox-item" data-value="cvd">
         <input type="checkbox" value="cvd"> 心血管疾病 CVD
@@ -1127,21 +1117,10 @@ document.getElementById('comorbidities').addEventListener('change', (e) => {
   }
 });
 
-// BMI select → auto-toggle obesity checkbox (Taiwan cutoffs)
-const $bmiSelect = document.getElementById('bmiSelect');
-const $obesityCheckbox = document.getElementById('obesityCheckbox');
-const BMI_LABELS = { underweight: '過輕', normal: '正常', overweight: '過重', obese1: '輕度肥胖', obese2: '中度肥胖', obese3: '重度肥胖' };
-$bmiSelect.addEventListener('change', () => {
-  const isObese = ['obese1', 'obese2', 'obese3'].includes($bmiSelect.value);
-  $obesityCheckbox.checked = isObese;
-  $obesityCheckbox.closest('.checkbox-item').classList.toggle('checked', isObese);
-});
-
 const PRESETS = {
   predm: {
     age: 50, dmType: 'PreDM', dmTreatment: 'diet', pregnancy: 'no',
     comorbidities: ['obesity'], hist: {},
-    bmiCategory: 'obese1',
     desc: 'Pre-DM — HbA1c 5.7-6.4%，免疫功能已開始下降'
   },
   t2dm_mid: {
@@ -1182,8 +1161,7 @@ const PRESETS = {
   t2dm_obese: {
     age: 45, dmType: 'T2DM', dmTreatment: 'oha', pregnancy: 'no',
     comorbidities: ['obesity'], hist: {},
-    bmiCategory: 'obese2',
-    desc: '中度肥胖（BMI 30-34.9）— 符合 RSV 50-74 歲高風險條件之一'
+    desc: '肥胖 BMI≥27 — 符合 RSV 50-74 歲高風險條件之一'
   },
   t2dm_transplant: {
     age: 58, dmType: 'T2DM', dmTreatment: 'insulin', pregnancy: 'no',
@@ -1227,10 +1205,6 @@ function applyPreset(key) {
     if (cb) { cb.checked = true; cb.closest('.checkbox-item').classList.add('checked'); }
   });
 
-  // Set BMI category if specified
-  $bmiSelect.value = p.bmiCategory || '';
-  $bmiSelect.dispatchEvent(new Event('change'));
-
   // Reset all vaccine history to "unknown"
   document.querySelectorAll('.vaccine-history-item select').forEach(s => s.selectedIndex = 0);
 
@@ -1254,13 +1228,12 @@ function getInputs() {
   const dmTreatment = $dmTreatment.value;
   const pregnancy = $pregnancy.value === 'yes';
 
-  const bmiCategory = $bmiSelect.value || null;
   const comorbidities = [];
   document.querySelectorAll('#comorbidities input:checked').forEach(cb => comorbidities.push(cb.value));
   const icType = $icType.value;
 
   return {
-    age, dmType, dmTreatment, pregnancy, bmiCategory, comorbidities, icType,
+    age, dmType, dmTreatment, pregnancy, comorbidities, icType,
     hist: {
       flu: document.getElementById('hist_flu').value,
       pneumo: document.getElementById('hist_pneumo').value,
@@ -1537,7 +1510,7 @@ function generateRecommendations() {
     if (p.usesInsulinOrSGLT2i()) qualifiers.push('使用胰島素或 SGLT2i 治療');
     if (p.hasComorbidity('cvd')) qualifiers.push('心血管疾病');
     if (p.hasComorbidity('lung')) qualifiers.push('慢性肺病');
-    if (p.hasComorbidity('obesity')) qualifiers.push(p.bmiCategory ? `BMI ${BMI_LABELS[p.bmiCategory]}` : '肥胖');
+    if (p.hasComorbidity('obesity')) qualifiers.push('肥胖 BMI≥27');
     if (p.hasComorbidity('dialysis')) qualifiers.push('洗腎/ESRD');
 
     recs.push({
@@ -1805,7 +1778,7 @@ function renderResults(patient, recs) {
   const summaryEl = $patientSummary;
   const comorbidityNames = {
     ckd: 'CKD', dialysis: '洗腎', cvd: 'CVD', cld: '慢性肝病', lung: '慢性肺病',
-    immunosuppressed: '免疫抑制', hiv: 'HIV', obesity: '肥胖',
+    immunosuppressed: '免疫抑制', hiv: 'HIV', obesity: '肥胖 BMI≥27',
     neuropathy: '神經病變', retinopathy: '視網膜病變', asplenia: '無脾', transplant: '器官移植'
   };
   const treatmentNames = {
@@ -1838,7 +1811,6 @@ function renderResults(patient, recs) {
       <strong>年齡：</strong>${patient.age} 歲 |
       <strong>DM Type：</strong>${patient.dmType} |
       <strong>治療：</strong>${treatmentNames[patient.dmTreatment] || '未填'} |
-      ${patient.bmiCategory ? `<strong>BMI：</strong>${BMI_LABELS[patient.bmiCategory]} |` : ''}
       <strong>懷孕：</strong>${patient.pregnancy ? '是' : '否'}<br>
       <strong>共病：</strong>${patient.comorbidities.length ? patient.comorbidities.map(c => comorbidityNames[c]).join('、') : '無'}
     </div>
@@ -2131,7 +2103,6 @@ function resetForm() {
   $dmType.value = 'T2DM';
   $dmTreatment.value = 'oha';
   $pregnancy.value = 'no';
-  $bmiSelect.value = '';
   document.querySelectorAll('#comorbidities input:checked').forEach(cb => {
     cb.checked = false;
     cb.closest('.checkbox-item').classList.remove('checked');
